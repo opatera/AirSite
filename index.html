@@ -2,61 +2,931 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AirSite</title>
-
   <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09111f;
+      --bg-accent: #12243c;
+      --panel: rgba(10, 18, 34, 0.82);
+      --panel-strong: rgba(16, 31, 56, 0.95);
+      --line: rgba(149, 187, 255, 0.18);
+      --text: #eff6ff;
+      --muted: #9fb4d3;
+      --brand: #7dd3fc;
+      --brand-strong: #38bdf8;
+      --success: #86efac;
+      --danger: #fca5a5;
+      --shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: white;
+      min-height: 100vh;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 30%),
+        linear-gradient(140deg, var(--bg) 0%, #0f1a2c 48%, var(--bg-accent) 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(125, 211, 252, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(125, 211, 252, 0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent);
+    }
+
+    .shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 32px auto;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: rgba(6, 12, 24, 0.8);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
       display: flex;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
-    .container {
-      text-align: center;
-      max-width: 700px;
-      padding: 40px;
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    h1 {
-      font-size: 3rem;
+    .brand-mark {
+      font-size: 0.84rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--brand);
+    }
+
+    .brand-title {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      margin: 0;
+    }
+
+    .brand-copy {
+      margin: 0;
+      color: var(--muted);
+      max-width: 58ch;
+      line-height: 1.5;
+    }
+
+    .tablist {
+      display: inline-flex;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(13, 24, 43, 0.9);
+    }
+
+    .tab-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .tab-button:hover,
+    .tab-button:focus-visible {
+      color: var(--text);
+      background: rgba(56, 189, 248, 0.12);
+      outline: none;
+    }
+
+    .tab-button[aria-selected="true"] {
+      color: #03111f;
+      background: linear-gradient(135deg, #a5f3fc, #38bdf8);
+      box-shadow: 0 12px 36px rgba(56, 189, 248, 0.22);
+    }
+
+    .panel {
+      display: none;
+      animation: rise 240ms ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .hero-grid,
+    .airserver-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 24px;
+      backdrop-filter: blur(14px);
+    }
+
+    .card strong {
+      display: block;
+      font-size: 1rem;
       margin-bottom: 10px;
     }
 
-    p {
-      font-size: 1.2rem;
-      color: #cbd5f5;
+    .card p,
+    .card li {
+      color: var(--muted);
+      line-height: 1.6;
     }
 
-    .btn {
-      margin-top: 25px;
-      display: inline-block;
-      padding: 12px 20px;
-      background: #38bdf8;
-      color: black;
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .airserver-grid {
+      grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.35fr);
+      align-items: start;
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+
+    .section-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .dropzone {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border: 1.5px dashed rgba(125, 211, 252, 0.35);
+      border-radius: 22px;
+      min-height: 220px;
+      padding: 28px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, rgba(56, 189, 248, 0.09), rgba(15, 23, 42, 0.22)),
+        rgba(8, 16, 31, 0.92);
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .dropzone.drag-over {
+      transform: translateY(-2px);
+      border-color: rgba(125, 211, 252, 0.85);
+      background:
+        linear-gradient(180deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.3)),
+        rgba(8, 16, 31, 0.95);
+    }
+
+    .dropzone input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .dropzone-copy {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+      max-width: min(100%, 30rem);
+      pointer-events: none;
+    }
+
+    .dropzone-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 96px;
+      padding: 8px 14px;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.08);
+      color: var(--brand);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .dropzone h3 {
+      margin: 0 0 10px;
+      font-size: 1.3rem;
+    }
+
+    .dropzone p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .dropzone .accent {
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .upload-toolbar {
+      margin-top: 18px;
+    }
+
+    .folder-toolbar {
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .folder-create {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .folder-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .folder-create-group {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .folder-input {
+      width: min(320px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 26, 46, 0.92);
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.94rem;
+    }
+
+    .folder-input::placeholder {
+      color: var(--muted);
+    }
+
+    .folder-input:focus-visible {
+      outline: none;
+      border-color: rgba(125, 211, 252, 0.45);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+    }
+
+    .pill,
+    .action-btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 26, 46, 0.92);
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.94rem;
+    }
+
+    .action-btn {
+      cursor: pointer;
+      font-weight: 700;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+
+    .pill {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .action-btn:hover,
+    .action-btn:focus-visible {
+      border-color: rgba(125, 211, 252, 0.45);
+      background: rgba(23, 39, 67, 0.98);
+      outline: none;
+    }
+
+    .action-btn:disabled {
+      cursor: progress;
+      opacity: 0.7;
+    }
+
+    .status {
+      min-height: 24px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .listing {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel-strong);
+    }
+
+    .listing-header {
+      display: grid;
+      grid-template-columns: minmax(320px, 1.9fr) 120px 160px;
+      gap: 12px;
+      padding: 14px 18px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .listing-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(320px, 1.9fr) 120px 160px;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      border-bottom: 1px solid rgba(149, 187, 255, 0.08);
+      text-align: left;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .listing-row:last-child {
+      border-bottom: 0;
+    }
+
+    .listing-row:hover,
+    .listing-row:focus-visible {
+      background: rgba(56, 189, 248, 0.08);
+      outline: none;
+    }
+
+    .listing-row.file-row .entry-icon {
+      color: #bfdbfe;
+      background: rgba(191, 219, 254, 0.12);
+    }
+
+    .listing-row.file-row {
+      cursor: default;
+    }
+
+    .entry-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      font-weight: 600;
+    }
+
+    .entry-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 1rem;
+      background: rgba(125, 211, 252, 0.12);
+      color: var(--brand);
+    }
+
+    .entry-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .entry-kind {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.32);
+      background: rgba(125, 211, 252, 0.1);
+      color: var(--brand);
+      font-size: 0.82rem;
+      font-weight: 800;
       text-decoration: none;
-      border-radius: 8px;
-      font-weight: bold;
+      transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
     }
 
-    .btn:hover {
-      background: #0ea5e9;
+    .download-link:hover,
+    .download-link:focus-visible {
+      background: rgba(125, 211, 252, 0.22);
+      border-color: rgba(125, 211, 252, 0.75);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .empty-state {
+      padding: 28px 18px;
+      color: var(--muted);
+    }
+
+    .path-display {
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar,
+      .hero-grid,
+      .airserver-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .topbar {
+        justify-content: stretch;
+      }
+
+      .tablist {
+        width: fit-content;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100vw - 18px, 100%);
+        margin: 10px auto;
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .dropzone {
+        min-height: 190px;
+        padding: 22px 18px;
+      }
+
+      .folder-toolbar,
+      .folder-create {
+        align-items: stretch;
+      }
+
+      .folder-create-group {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .folder-input,
+      .upload-toolbar .action-btn,
+      .upload-toolbar .pill,
+      .folder-create .action-btn {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .listing-header,
+      .listing-row {
+        grid-template-columns: minmax(0, 1fr) 88px;
+      }
+
+      .listing-header span:nth-child(2),
+      .listing-row span:nth-child(2) {
+        text-align: right;
+      }
+
+      .listing-header span:nth-child(3),
+      .listing-row span:nth-child(3) {
+        display: none;
+      }
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>🚀 AirSite is Live</h1>
-    <p>Your Linux server is successfully hosting a website using Nginx.</p>
-    <p>This site is connected to your GitHub repo and ready to grow.</p>
+  <main class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark">AirSite</span>
+        <h1 class="brand-title">Private services, one home page.</h1>
+      </div>
 
-    <a class="btn" href="#">Next Step →</a>
-  </div>
+      <div class="tablist" role="tablist" aria-label="AirSite pages">
+        <button class="tab-button" type="button" role="tab" id="tab-home" aria-controls="panel-home" aria-selected="true">
+          Home
+        </button>
+        <button class="tab-button" type="button" role="tab" id="tab-airserver" aria-controls="panel-airserver" aria-selected="false">
+          AirServer
+        </button>
+      </div>
+    </div>
+
+    <section class="panel active" id="panel-home" role="tabpanel" aria-labelledby="tab-home">
+      <div class="hero-grid">
+        <article class="card">
+          <strong>AirSite is live</strong>
+          <p>
+            Your landing page is no longer just a placeholder. It now works as a launcher for internal tools, with room to keep adding services over time.
+          </p>
+          <p>
+            The first tool is <span class="path-display">AirServer</span>, built for fast drag-and-drop uploads into your shared storage from any browser on the network.
+          </p>
+        </article>
+
+        <article class="card">
+          <strong>What AirServer does</strong>
+          <ul>
+            <li>Lets users browse from `/share` downward without exposing directories above it.</li>
+            <li>Supports drag-and-drop or picker-based uploads.</li>
+            <li>Refreshes the folder view after uploads complete.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-airserver" role="tabpanel" aria-labelledby="tab-airserver">
+      <div class="airserver-grid">
+        <article class="card">
+          <h2 class="section-title">AirServer</h2>
+          <p class="section-copy">
+            Drop files straight into your shared drive. The root browser starts at `/share`, and navigation stays inside that shared area.
+          </p>
+
+          <label class="dropzone" id="dropzone">
+            <input type="file" id="fileInput" multiple />
+            <div class="dropzone-copy">
+              <span class="dropzone-badge">AirServer</span>
+              <h3>Drag files here</h3>
+              <p><span class="accent">or click to browse</span> and upload them to the current folder.</p>
+            </div>
+          </label>
+
+          <div class="toolbar upload-toolbar">
+            <button class="action-btn" type="button" id="uploadButton">Upload Selected Files</button>
+            <span class="pill" id="selectionPill">No files selected</span>
+          </div>
+
+          <p class="status" id="statusText" aria-live="polite"></p>
+        </article>
+
+        <article class="card">
+          <div class="toolbar folder-toolbar">
+            <div class="folder-create">
+              <div class="folder-actions">
+                <button class="action-btn" type="button" id="upButton">Up One Level</button>
+                <button class="action-btn" type="button" id="refreshButton">Refresh</button>
+              </div>
+              <div class="folder-create-group">
+                <input class="folder-input" type="text" id="folderNameInput" placeholder="New folder name" maxlength="120" />
+                <button class="action-btn" type="button" id="createFolderButton">Create Folder</button>
+              </div>
+            </div>
+            <span class="pill">Current path: <span class="path-display" id="currentPath">/share</span></span>
+          </div>
+
+          <div class="listing" id="listing">
+            <div class="listing-header">
+              <span>Name</span>
+              <span>Size</span>
+              <span>Type</span>
+            </div>
+            <div class="empty-state" id="listingContent">Loading folder contents...</div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tabs = [
+      { button: document.getElementById("tab-home"), panel: document.getElementById("panel-home") },
+      { button: document.getElementById("tab-airserver"), panel: document.getElementById("panel-airserver") }
+    ];
+
+    const statusText = document.getElementById("statusText");
+    const fileInput = document.getElementById("fileInput");
+    const selectionPill = document.getElementById("selectionPill");
+    const uploadButton = document.getElementById("uploadButton");
+    const refreshButton = document.getElementById("refreshButton");
+    const upButton = document.getElementById("upButton");
+    const folderNameInput = document.getElementById("folderNameInput");
+    const createFolderButton = document.getElementById("createFolderButton");
+    const listingContent = document.getElementById("listingContent");
+    const currentPath = document.getElementById("currentPath");
+    const dropzone = document.getElementById("dropzone");
+
+    let selectedFiles = [];
+    let activePath = "";
+
+    function setActiveTab(tabId) {
+      tabs.forEach(({ button, panel }) => {
+        const active = button.id === tabId;
+        button.setAttribute("aria-selected", String(active));
+        panel.classList.toggle("active", active);
+      });
+    }
+
+    tabs.forEach(({ button }) => {
+      button.addEventListener("click", () => setActiveTab(button.id));
+    });
+
+    function setStatus(message, type = "") {
+      statusText.textContent = message;
+      statusText.className = type ? `status ${type}` : "status";
+    }
+
+    function updateSelection(files) {
+      selectedFiles = Array.from(files);
+      selectionPill.textContent = selectedFiles.length
+        ? `${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} selected`
+        : "No files selected";
+    }
+
+    function formatSize(size) {
+      if (size === null || size === undefined || size === "") {
+        return "-";
+      }
+
+      if (size < 1024) {
+        return `${size} B`;
+      }
+
+      const units = ["KB", "MB", "GB", "TB"];
+      let value = size / 1024;
+      let unitIndex = 0;
+
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+      }
+
+      return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
+    }
+
+    function iconForEntry(entry) {
+      return entry.kind === "directory" ? "DIR" : "DL";
+    }
+
+    function downloadLink(path) {
+      const query = new URLSearchParams({ path });
+      return `/api/download?${query.toString()}`;
+    }
+
+    function parentPath(path) {
+      if (!path) {
+        return "";
+      }
+
+      const segments = path.split("/").filter(Boolean);
+      segments.pop();
+      return segments.join("/");
+    }
+
+    function renderListing(entries) {
+      if (!entries.length) {
+        listingContent.innerHTML = '<div class="empty-state">This folder is empty.</div>';
+        return;
+      }
+
+      const rows = entries.map((entry) => {
+        const button = document.createElement("button");
+        button.className = `listing-row ${entry.kind === "directory" ? "directory-row" : "file-row"}`;
+        button.type = "button";
+        button.title = entry.name;
+        button.innerHTML = `
+          <span class="entry-name">
+            <span class="entry-icon">${iconForEntry(entry)}</span>
+            <span class="entry-label" title="${entry.name}">${entry.name}</span>
+          </span>
+          <span>${entry.kind === "directory" ? "-" : formatSize(entry.size)}</span>
+          <span class="entry-kind">
+            <span>${entry.kind}</span>
+            ${entry.kind === "directory"
+              ? ""
+              : `<a class="download-link" href="${downloadLink(entry.path)}" title="Download ${entry.name}" aria-label="Download ${entry.name}">↓</a>`}
+          </span>
+        `;
+
+        if (entry.kind === "directory") {
+          button.addEventListener("click", () => loadListing(entry.path));
+        }
+
+        return button;
+      });
+
+      listingContent.replaceChildren(...rows);
+    }
+
+    async function loadListing(path = "") {
+      const query = new URLSearchParams();
+      if (path) {
+        query.set("path", path);
+      }
+
+      currentPath.textContent = path ? `/share/${path}` : "/share";
+      listingContent.innerHTML = '<div class="empty-state">Loading folder contents...</div>';
+
+      try {
+        const response = await fetch(`/api/list?${query.toString()}`);
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load folder contents.");
+        }
+
+        activePath = payload.currentPath || "";
+        currentPath.textContent = activePath ? `/share/${activePath}` : "/share";
+        upButton.disabled = !activePath;
+        renderListing(payload.entries || []);
+      } catch (error) {
+        listingContent.innerHTML = `<div class="empty-state">${error.message}</div>`;
+      }
+    }
+
+    async function uploadFiles() {
+      if (!selectedFiles.length) {
+        setStatus("Choose at least one file before uploading.", "error");
+        return;
+      }
+
+      const formData = new FormData();
+      selectedFiles.forEach((file) => formData.append("files", file, file.name));
+
+      uploadButton.disabled = true;
+      setStatus(`Uploading ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"}...`);
+
+      try {
+        const query = new URLSearchParams();
+        if (activePath) {
+          query.set("path", activePath);
+        }
+
+        const response = await fetch(`/api/upload?${query.toString()}`, {
+          method: "POST",
+          body: formData
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Upload failed.");
+        }
+
+        fileInput.value = "";
+        updateSelection([]);
+        setStatus(payload.message || "Upload completed.", "success");
+        await loadListing(activePath);
+      } catch (error) {
+        setStatus(error.message, "error");
+      } finally {
+        uploadButton.disabled = false;
+      }
+    }
+
+    async function createFolder() {
+      const folderName = folderNameInput.value.trim();
+
+      if (!folderName) {
+        setStatus("Enter a folder name before creating it.", "error");
+        return;
+      }
+
+      createFolderButton.disabled = true;
+      setStatus(`Creating folder "${folderName}"...`);
+
+      try {
+        const query = new URLSearchParams();
+        if (activePath) {
+          query.set("path", activePath);
+        }
+
+        const response = await fetch(`/api/folder?${query.toString()}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name: folderName })
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Folder creation failed.");
+        }
+
+        folderNameInput.value = "";
+        setStatus(payload.message || "Folder created.", "success");
+        await loadListing(activePath);
+      } catch (error) {
+        setStatus(error.message, "error");
+      } finally {
+        createFolderButton.disabled = false;
+      }
+    }
+
+    fileInput.addEventListener("change", (event) => {
+      updateSelection(event.target.files || []);
+    });
+
+    uploadButton.addEventListener("click", uploadFiles);
+    createFolderButton.addEventListener("click", createFolder);
+    folderNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        createFolder();
+      }
+    });
+    refreshButton.addEventListener("click", () => loadListing(activePath));
+    upButton.addEventListener("click", () => loadListing(parentPath(activePath)));
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.add("drag-over");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("drag-over");
+      });
+    });
+
+    dropzone.addEventListener("drop", (event) => {
+      const files = event.dataTransfer?.files || [];
+      if (files.length) {
+        updateSelection(files);
+      }
+    });
+
+    loadListing();
+  </script>
 </body>
 </html>
