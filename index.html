@@ -7,18 +7,21 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #09111f;
-      --bg-accent: #12243c;
-      --panel: rgba(10, 18, 34, 0.82);
-      --panel-strong: rgba(16, 31, 56, 0.95);
-      --line: rgba(149, 187, 255, 0.18);
-      --text: #eff6ff;
-      --muted: #9fb4d3;
-      --brand: #7dd3fc;
-      --brand-strong: #38bdf8;
+      --bg: #07131b;
+      --bg-accent: #12343a;
+      --bg-deep: #030a12;
+      --panel: rgba(7, 18, 28, 0.82);
+      --panel-strong: rgba(11, 24, 37, 0.95);
+      --line: rgba(157, 232, 217, 0.14);
+      --line-strong: rgba(157, 232, 217, 0.26);
+      --text: #f4fbf8;
+      --muted: #9ab7b7;
+      --brand: #9de8d9;
+      --brand-strong: #47c6ba;
+      --brand-warm: #ffd89a;
       --success: #86efac;
       --danger: #fca5a5;
-      --shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+      --shadow: 0 32px 90px rgba(1, 8, 14, 0.5);
       --radius: 24px;
     }
 
@@ -29,12 +32,13 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 30%),
-        linear-gradient(140deg, var(--bg) 0%, #0f1a2c 48%, var(--bg-accent) 100%);
+        radial-gradient(circle at 15% 10%, rgba(71, 198, 186, 0.2), transparent 24%),
+        radial-gradient(circle at 86% 16%, rgba(255, 216, 154, 0.12), transparent 22%),
+        radial-gradient(circle at 50% 120%, rgba(71, 198, 186, 0.1), transparent 34%),
+        linear-gradient(145deg, var(--bg-deep) 0%, var(--bg) 42%, var(--bg-accent) 100%);
     }
 
     body::before {
@@ -42,22 +46,53 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(125, 211, 252, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(125, 211, 252, 0.04) 1px, transparent 1px);
-      background-size: 28px 28px;
+        linear-gradient(rgba(157, 232, 217, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 232, 217, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
       pointer-events: none;
       mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent);
     }
 
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(120deg, rgba(255, 216, 154, 0.05), transparent 32%),
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 26%);
+      mix-blend-mode: screen;
+      opacity: 0.8;
+    }
+
     .shell {
       width: min(1180px, calc(100vw - 32px));
-      margin: 32px auto;
-      padding: 28px;
+      margin: 28px auto;
+      padding: 32px;
       border: 1px solid var(--line);
-      border-radius: 32px;
-      background: rgba(6, 12, 24, 0.8);
+      border-radius: 36px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
+        rgba(4, 13, 21, 0.8);
       box-shadow: var(--shadow);
       backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(157, 232, 217, 0.24), rgba(255, 216, 154, 0.12), transparent 55%);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
     }
 
     .topbar {
@@ -75,15 +110,18 @@
     }
 
     .brand-mark {
-      font-size: 0.84rem;
-      letter-spacing: 0.24em;
+      font-size: 0.8rem;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: var(--brand);
+      color: var(--brand-warm);
     }
 
     .brand-title {
+      font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
       font-size: clamp(2rem, 4vw, 3.6rem);
       margin: 0;
+      line-height: 0.98;
+      max-width: 12ch;
     }
 
     .brand-copy {
@@ -99,7 +137,8 @@
       padding: 8px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: rgba(13, 24, 43, 0.9);
+      background: rgba(9, 21, 32, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .tab-button {
@@ -117,14 +156,14 @@
     .tab-button:hover,
     .tab-button:focus-visible {
       color: var(--text);
-      background: rgba(56, 189, 248, 0.12);
+      background: rgba(71, 198, 186, 0.12);
       outline: none;
     }
 
     .tab-button[aria-selected="true"] {
-      color: #03111f;
-      background: linear-gradient(135deg, #a5f3fc, #38bdf8);
-      box-shadow: 0 12px 36px rgba(56, 189, 248, 0.22);
+      color: #04211d;
+      background: linear-gradient(135deg, #ffe3b5, #9de8d9);
+      box-shadow: 0 12px 36px rgba(71, 198, 186, 0.18);
     }
 
     .panel {
@@ -146,12 +185,115 @@
       grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     }
 
+    .home-feature {
+      margin-top: 20px;
+    }
+
+    .home-stack {
+      display: grid;
+      gap: 20px;
+    }
+
+    .home-lead {
+      position: relative;
+      overflow: hidden;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top right, rgba(255, 216, 154, 0.1), transparent 26%),
+        linear-gradient(160deg, rgba(71, 198, 186, 0.12), rgba(7, 18, 28, 0.82) 42%);
+    }
+
+    .home-lead::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      right: -50px;
+      top: -50px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(157, 232, 217, 0.18), transparent 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--brand-warm);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .lead-title {
+      margin: 0 0 14px;
+      font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1;
+      max-width: 12ch;
+    }
+
+    .lead-copy {
+      margin: 0;
+      max-width: 54ch;
+      color: #d7e7e4;
+      line-height: 1.65;
+    }
+
+    .lead-copy + .lead-copy {
+      margin-top: 14px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(157, 232, 217, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .stat-value {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
     .card {
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--panel);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 16%),
+        var(--panel);
       padding: 24px;
       backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
     }
 
     .card strong {
@@ -171,9 +313,689 @@
       padding-left: 18px;
     }
 
+    .poly-showcase {
+      position: relative;
+      min-height: 360px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 6%, rgba(157, 232, 217, 0.16), transparent 22%),
+        radial-gradient(circle at 18% 30%, rgba(71, 198, 186, 0.12), transparent 24%),
+        radial-gradient(circle at 82% 38%, rgba(255, 216, 154, 0.08), transparent 22%),
+        linear-gradient(180deg, rgba(5, 14, 24, 0.98), rgba(8, 19, 28, 0.88));
+    }
+
+    .poly-canvas {
+      display: block;
+      width: 100%;
+      height: 360px;
+      cursor: pointer;
+    }
+
     .airserver-grid {
       grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.35fr);
       align-items: start;
+    }
+
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .network-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .gba-grid {
+      display: grid;
+      grid-template-columns: minmax(360px, 1.1fr) minmax(320px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .gba-head {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .gba-stage {
+      height: min(70vh, 760px);
+      min-height: 420px;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 32%),
+        linear-gradient(180deg, rgba(7, 16, 31, 0.98), rgba(8, 16, 31, 0.88));
+    }
+
+    .gba-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: transparent;
+    }
+
+    .gba-stage:fullscreen {
+      height: 100vh;
+      border-radius: 0;
+      border: 0;
+    }
+
+    .gba-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .gba-volume-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      background: rgba(9, 19, 36, 0.72);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .gba-volume-wrap input[type="range"] {
+      width: 180px;
+      accent-color: #38bdf8;
+    }
+
+    .gba-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .gba-meta-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(125, 211, 252, 0.12);
+      background: rgba(9, 19, 36, 0.72);
+    }
+
+    .gba-meta-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .gba-meta-value {
+      color: var(--text);
+      font-weight: 600;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .gba-toolbar {
+      margin-bottom: 18px;
+    }
+
+    .gba-header,
+    .gba-row {
+      grid-template-columns: minmax(0, 1.7fr) 110px 120px;
+      align-items: center;
+    }
+
+    .gba-header span:nth-child(2),
+    .gba-row > span:nth-child(2) {
+      text-align: right;
+    }
+
+    .gba-row {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      border-bottom: 1px solid rgba(149, 187, 255, 0.08);
+      text-align: left;
+      cursor: pointer;
+      transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+
+    .gba-row:hover,
+    .gba-row:focus-visible {
+      background: rgba(56, 189, 248, 0.08);
+      outline: none;
+    }
+
+    .gba-row.is-current {
+      background:
+        linear-gradient(90deg, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.05)),
+        rgba(56, 189, 248, 0.08);
+      box-shadow:
+        inset 4px 0 0 rgba(125, 211, 252, 0.95),
+        inset 0 0 0 1px rgba(125, 211, 252, 0.22);
+      transform: translateX(2px);
+    }
+
+    .gba-row.rom-row .entry-icon {
+      color: #fef08a;
+      background: rgba(250, 204, 21, 0.14);
+    }
+
+    .gba-row-save {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      background: rgba(125, 211, 252, 0.08);
+      color: #d8f5ff;
+    }
+
+    .gba-row-save.ready {
+      border-color: rgba(134, 239, 172, 0.2);
+      background: rgba(34, 197, 94, 0.14);
+      color: #dcfce7;
+    }
+
+    .media-head {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .now-playing {
+      position: relative;
+      min-height: 320px;
+      display: flex;
+      align-items: end;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(125, 211, 252, 0.12);
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(8, 16, 31, 0.94), rgba(8, 16, 31, 0.82));
+    }
+
+    .now-playing-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .now-playing.has-art .now-playing-art {
+      opacity: 1;
+    }
+
+    .now-playing-overlay {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: grid;
+      gap: 10px;
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(2, 6, 23, 0.08), rgba(2, 6, 23, 0.84) 68%, rgba(2, 6, 23, 0.96));
+    }
+
+    .now-playing-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.1);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      color: var(--brand);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .now-playing-title {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .now-playing-meta {
+      color: #dbeafe;
+      line-height: 1.55;
+      text-shadow: 0 1px 8px rgba(2, 6, 23, 0.55);
+    }
+
+    .media-audio {
+      width: 100%;
+      margin-top: 18px;
+      border-radius: 18px;
+      background: rgba(8, 16, 31, 0.8);
+    }
+
+    .media-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .media-control-btn {
+      min-width: 112px;
+    }
+
+    .media-control-btn.primary {
+      background: linear-gradient(135deg, #ffe3b5, #9de8d9);
+      color: #04211d;
+      border-color: transparent;
+    }
+
+    .media-control-btn.primary:hover,
+    .media-control-btn.primary:focus-visible {
+      background: linear-gradient(135deg, #ffedcf, #b9f2e7);
+    }
+
+    .media-toolbar {
+      margin-bottom: 18px;
+    }
+
+    .media-header,
+    .media-row {
+      grid-template-columns: minmax(0, 1.8fr) 120px 110px;
+      align-items: center;
+    }
+
+    .media-row {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      border-bottom: 1px solid rgba(149, 187, 255, 0.08);
+      text-align: left;
+      cursor: pointer;
+      transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+      position: relative;
+    }
+
+    .media-row:hover,
+    .media-row:focus-visible {
+      background: rgba(56, 189, 248, 0.08);
+      outline: none;
+    }
+
+    .media-row.track-row.is-current {
+      background:
+        linear-gradient(90deg, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.06)),
+        rgba(56, 189, 248, 0.08);
+      box-shadow:
+        inset 4px 0 0 rgba(103, 232, 249, 0.9),
+        inset 0 0 0 1px rgba(125, 211, 252, 0.22);
+      transform: translateX(2px);
+    }
+
+    .media-row.track-row.is-current .entry-icon {
+      color: #cffafe;
+      background: rgba(103, 232, 249, 0.18);
+    }
+
+    .media-row.track-row.is-current .entry-label {
+      color: #f8fdff;
+    }
+
+    .media-row.track-row.is-current.is-playing {
+      background:
+        linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(56, 189, 248, 0.08)),
+        rgba(56, 189, 248, 0.1);
+      box-shadow:
+        inset 4px 0 0 rgba(134, 239, 172, 0.95),
+        inset 0 0 0 1px rgba(134, 239, 172, 0.26);
+    }
+
+    .media-row.track-row .entry-icon {
+      color: #a7f3d0;
+      background: rgba(167, 243, 208, 0.1);
+    }
+
+    .media-track-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .media-row-state {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: rgba(125, 211, 252, 0.14);
+      color: #d8f5ff;
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      flex: 0 0 auto;
+    }
+
+    .media-row.track-row.is-current .media-row-state {
+      display: inline-flex;
+    }
+
+    .media-row.track-row.is-current.is-playing .media-row-state {
+      background: rgba(34, 197, 94, 0.18);
+      color: #dcfce7;
+      border-color: rgba(134, 239, 172, 0.26);
+    }
+
+    .media-header span:nth-child(2),
+    .media-row > span:nth-child(2) {
+      width: 100%;
+      justify-self: stretch;
+      text-align: right;
+    }
+
+    .media-header span:nth-child(3),
+    .media-row > span:nth-child(3) {
+      width: 100%;
+      justify-self: stretch;
+      text-align: left;
+    }
+
+    .system-hero,
+    .network-hero,
+    .system-card-wide {
+      grid-column: span 12;
+    }
+
+    .metric-card {
+      grid-column: span 4;
+    }
+
+    .network-summary-card {
+      grid-column: span 4;
+    }
+
+    .network-section-card {
+      grid-column: span 8;
+    }
+
+    .system-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .network-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .metric-value {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin: 14px 0 12px;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .metric-value small,
+    .metric-sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .metric-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .metric-large {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .meter {
+      width: 100%;
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7dd3fc, #38bdf8);
+      transition: width 250ms ease;
+    }
+
+    .memory-fill {
+      background: linear-gradient(90deg, #93c5fd, #60a5fa);
+    }
+
+    .mini-chart {
+      width: 100%;
+      height: 160px;
+      border-radius: 18px;
+      display: block;
+    }
+
+    .chart-block {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .chart-summary {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .chart-frame {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      background: rgba(8, 15, 30, 0.68);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      max-width: 180px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.9);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      color: var(--text);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      pointer-events: none;
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
+    }
+
+    .chart-axis-labels {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .storage-list,
+    .service-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .storage-item,
+    .service-item {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 18px;
+      background: rgba(8, 16, 31, 0.7);
+    }
+
+    .storage-top,
+    .service-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .storage-meta,
+    .service-meta {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .service-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      background: rgba(15, 23, 42, 0.82);
+      font-size: 0.84rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .service-pill.active {
+      color: var(--success);
+      border-color: rgba(134, 239, 172, 0.22);
+      background: rgba(20, 42, 28, 0.82);
+    }
+
+    .service-pill.inactive,
+    .service-pill.failed {
+      color: var(--danger);
+      border-color: rgba(252, 165, 165, 0.22);
+      background: rgba(57, 23, 23, 0.82);
+    }
+
+    .network-summary-list,
+    .network-interface-list,
+    .network-neighbor-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .network-summary-row,
+    .network-interface-card,
+    .network-neighbor-card {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 18px;
+      background: rgba(8, 16, 31, 0.7);
+    }
+
+    .network-summary-row {
+      grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+      align-items: center;
+    }
+
+    .network-summary-row span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .network-summary-row strong {
+      word-break: break-word;
+    }
+
+    .network-interface-top,
+    .network-neighbor-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .network-interface-meta,
+    .network-neighbor-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .network-state-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(15, 23, 42, 0.82);
+    }
+
+    .network-state-pill.up,
+    .network-state-pill.reachable {
+      color: var(--success);
+      border-color: rgba(134, 239, 172, 0.22);
+      background: rgba(20, 42, 28, 0.82);
     }
 
     .section-title {
@@ -346,9 +1168,25 @@
 
     .action-btn:hover,
     .action-btn:focus-visible {
-      border-color: rgba(125, 211, 252, 0.45);
-      background: rgba(23, 39, 67, 0.98);
+      border-color: var(--line-strong);
+      background: rgba(20, 37, 48, 0.98);
       outline: none;
+    }
+
+    .action-btn.hero-btn {
+      padding-inline: 18px;
+    }
+
+    .action-btn.hero-btn.primary {
+      color: #04211d;
+      border-color: transparent;
+      background: linear-gradient(135deg, #ffe3b5, #9de8d9);
+      box-shadow: 0 10px 30px rgba(71, 198, 186, 0.16);
+    }
+
+    .action-btn.hero-btn.primary:hover,
+    .action-btn.hero-btn.primary:focus-visible {
+      background: linear-gradient(135deg, #ffedcf, #b9f2e7);
     }
 
     .action-btn:disabled {
@@ -388,6 +1226,11 @@
       text-transform: uppercase;
       color: var(--muted);
       border-bottom: 1px solid var(--line);
+    }
+
+    .listing-header.media-header {
+      grid-template-columns: minmax(0, 1.8fr) 120px 110px;
+      align-items: center;
     }
 
     .listing-row {
@@ -506,6 +1349,9 @@
 
     @media (max-width: 900px) {
       .topbar,
+      .gba-grid,
+      .media-grid,
+      .system-grid,
       .hero-grid,
       .airserver-grid {
         grid-template-columns: 1fr;
@@ -519,6 +1365,16 @@
       .tablist {
         width: fit-content;
       }
+
+      .metric-card,
+      .system-hero,
+      .system-card-wide {
+        grid-column: span 1;
+      }
+
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 640px) {
@@ -527,6 +1383,19 @@
         margin: 10px auto;
         padding: 18px;
         border-radius: 22px;
+      }
+
+      .poly-showcase {
+        min-height: 320px;
+      }
+
+      .lead-title,
+      .brand-title {
+        max-width: none;
+      }
+
+      .poly-canvas {
+        height: 320px;
       }
 
       .dropzone {
@@ -553,9 +1422,23 @@
         text-align: center;
       }
 
+      .gba-meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gba-stage {
+        height: min(58vh, 520px);
+        min-height: 320px;
+      }
+
       .listing-header,
       .listing-row {
         grid-template-columns: minmax(0, 1fr) 88px;
+      }
+
+      .gba-header,
+      .gba-row {
+        grid-template-columns: minmax(0, 1fr) 92px;
       }
 
       .listing-header span:nth-child(2),
@@ -563,8 +1446,18 @@
         text-align: right;
       }
 
+      .gba-header span:nth-child(2),
+      .gba-row > span:nth-child(2) {
+        text-align: right;
+      }
+
       .listing-header span:nth-child(3),
       .listing-row span:nth-child(3) {
+        display: none;
+      }
+
+      .gba-header span:nth-child(3),
+      .gba-row > span:nth-child(3) {
         display: none;
       }
     }
@@ -582,6 +1475,18 @@
         <button class="tab-button" type="button" role="tab" id="tab-home" aria-controls="panel-home" aria-selected="true">
           Home
         </button>
+        <button class="tab-button" type="button" role="tab" id="tab-media" aria-controls="panel-media" aria-selected="false">
+          Media
+        </button>
+        <button class="tab-button" type="button" role="tab" id="tab-gba" aria-controls="panel-gba" aria-selected="false">
+          GBA
+        </button>
+        <button class="tab-button" type="button" role="tab" id="tab-network" aria-controls="panel-network" aria-selected="false">
+          Network
+        </button>
+        <button class="tab-button" type="button" role="tab" id="tab-system" aria-controls="panel-system" aria-selected="false">
+          System
+        </button>
         <button class="tab-button" type="button" role="tab" id="tab-airserver" aria-controls="panel-airserver" aria-selected="false">
           AirServer
         </button>
@@ -590,23 +1495,296 @@
 
     <section class="panel active" id="panel-home" role="tabpanel" aria-labelledby="tab-home">
       <div class="hero-grid">
+        <article class="card home-lead">
+          <div class="eyebrow">Private network home</div>
+          <h2 class="lead-title">Your server tools, library, and storage in one place.</h2>
+          <p class="lead-copy">
+            AirSite is the front door to your home server: a clean landing page for storage, media playback, handheld games, and live machine status.
+          </p>
+          <p class="lead-copy">
+            Everything stays centered on your own network, with <span class="path-display">AirServer</span> as the file hub behind the rest of the experience.
+          </p>
+          <div class="hero-actions">
+            <button class="action-btn hero-btn primary" type="button" data-tab-target="tab-airserver">Open AirServer</button>
+            <button class="action-btn hero-btn" type="button" data-tab-target="tab-media">Browse Media</button>
+          </div>
+        </article>
+
+        <div class="home-stack">
+          <article class="card">
+            <strong>What AirServer does</strong>
+            <ul>
+              <li>Lets users browse from `/share` downward without exposing directories above it.</li>
+              <li>Supports drag-and-drop or picker-based uploads.</li>
+              <li>Lets users download files and create folders directly from the browser.</li>
+            </ul>
+          </article>
+
+          <article class="hero-stats">
+            <div class="stat-card">
+              <span class="stat-value">6</span>
+              <span class="stat-label">Main tabs for storage, media, games, network, and system visibility.</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">1</span>
+              <span class="stat-label">Shared home page that keeps your private services grouped together.</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value">0</span>
+              <span class="stat-label">Cloud dependency for the core experience once it is running on your LAN.</span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <article class="card poly-showcase home-feature">
+        <canvas class="poly-canvas" id="polyCanvas" aria-label="Rotating 20-sided polygon animation"></canvas>
+      </article>
+    </section>
+
+    <section class="panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system">
+      <div class="system-grid">
+        <article class="card system-hero">
+          <div>
+            <h2 class="section-title">System Dashboard</h2>
+            <p class="section-copy">
+              A live view of your home server with CPU, memory, storage, uptime, and service health pulled straight from the machine.
+            </p>
+          </div>
+          <div class="system-badges">
+            <span class="pill">Host: <span class="path-display" id="systemHostname">Loading...</span></span>
+            <span class="pill">Kernel: <span id="systemKernel">Loading...</span></span>
+          </div>
+        </article>
+
+        <article class="card metric-card">
+          <strong>CPU Load</strong>
+          <div class="metric-value"><span id="cpuUsageValue">--</span><small>%</small></div>
+          <div class="meter"><div class="meter-fill" id="cpuUsageBar"></div></div>
+          <div class="chart-block">
+            <div class="chart-summary" id="cpuChartSummary">Waiting for history...</div>
+            <div class="chart-frame" id="cpuChartFrame">
+              <canvas class="mini-chart" id="cpuChart" aria-label="CPU usage chart"></canvas>
+              <div class="chart-tooltip" id="cpuChartTooltip" hidden></div>
+            </div>
+            <div class="chart-axis-labels">
+              <span id="cpuAxisStart">--:--</span>
+              <span id="cpuAxisMid">--:--</span>
+              <span id="cpuAxisEnd">Now</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card metric-card">
+          <strong>Memory Use</strong>
+          <div class="metric-value"><span id="memoryUsageValue">--</span><small>%</small></div>
+          <div class="meter"><div class="meter-fill memory-fill" id="memoryUsageBar"></div></div>
+          <div class="chart-block">
+            <div class="chart-summary" id="memoryChartSummary">Waiting for history...</div>
+            <div class="chart-frame" id="memoryChartFrame">
+              <canvas class="mini-chart" id="memoryChart" aria-label="Memory usage chart"></canvas>
+              <div class="chart-tooltip" id="memoryChartTooltip" hidden></div>
+            </div>
+            <div class="chart-axis-labels">
+              <span id="memoryAxisStart">--:--</span>
+              <span id="memoryAxisMid">--:--</span>
+              <span id="memoryAxisEnd">Now</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card metric-card">
+          <strong>Server Uptime</strong>
+          <div class="metric-stack">
+            <span class="metric-large" id="uptimeValue">Loading...</span>
+            <span class="metric-sub" id="loadAverageValue">Load avg: -- / -- / --</span>
+            <span class="metric-sub" id="cpuCoreValue">CPU cores: --</span>
+          </div>
+        </article>
+
+        <article class="card system-card-wide">
+          <div class="card-header">
+            <strong>Storage</strong>
+            <span class="metric-sub">System and shared drive capacity</span>
+          </div>
+          <div class="storage-list" id="storageList">
+            <div class="empty-state">Loading storage details...</div>
+          </div>
+        </article>
+
+        <article class="card system-card-wide">
+          <div class="card-header">
+            <strong>Services</strong>
+            <span class="metric-sub">AirSite stack health</span>
+          </div>
+          <div class="service-list" id="serviceList">
+            <div class="empty-state">Loading service state...</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-media" role="tabpanel" aria-labelledby="tab-media">
+      <div class="media-grid">
+        <article class="card media-player-card">
+          <div class="media-head">
+            <div>
+              <h2 class="section-title">Media</h2>
+              <p class="section-copy">
+                Stream your music library directly from <span class="path-display">/share/Music</span>. This tab is read-only and focused on playback.
+              </p>
+            </div>
+            <span class="pill">Music root: <span class="path-display" id="mediaCurrentPath">/share/Music</span></span>
+          </div>
+
+          <div class="now-playing">
+            <img class="now-playing-art" id="mediaAlbumArt" alt="" />
+            <div class="now-playing-overlay">
+              <div class="now-playing-badge">Now Playing</div>
+              <div class="now-playing-title" id="mediaTrackTitle">No track selected</div>
+              <div class="now-playing-meta" id="mediaTrackMeta">Choose a FLAC track from the library to begin streaming.</div>
+            </div>
+          </div>
+
+          <div class="media-controls">
+            <button class="action-btn media-control-btn" type="button" id="mediaPrevButton">Previous</button>
+            <button class="action-btn media-control-btn primary" type="button" id="mediaPlayPauseButton">Play</button>
+            <button class="action-btn media-control-btn" type="button" id="mediaNextButton">Next</button>
+          </div>
+
+          <audio id="mediaPlayer" controls preload="metadata" class="media-audio"></audio>
+          <p class="status" id="mediaStatus" aria-live="polite"></p>
+        </article>
+
+        <article class="card media-library-card">
+          <div class="toolbar media-toolbar">
+            <button class="action-btn" type="button" id="mediaUpButton">Up One Level</button>
+            <button class="action-btn" type="button" id="mediaRefreshButton">Refresh Library</button>
+          </div>
+
+          <div class="listing media-listing">
+            <div class="listing-header media-header">
+              <span>Name</span>
+              <span>Size</span>
+              <span>Type</span>
+            </div>
+            <div class="empty-state" id="mediaListingContent">Loading music library...</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-gba" role="tabpanel" aria-labelledby="tab-gba">
+      <div class="gba-grid">
         <article class="card">
-          <strong>AirSite is live</strong>
-          <p>
-            Your landing page is no longer just a placeholder. It now works as a launcher for internal tools, with room to keep adding services over time.
-          </p>
-          <p>
-            The first tool is <span class="path-display">AirServer</span>, built for fast drag-and-drop uploads into your shared storage from any browser on the network.
-          </p>
+          <div class="gba-head">
+            <div>
+              <h2 class="section-title">Game Boy Advance</h2>
+              <p class="section-copy">
+                Launch GBA ROMs directly from <span class="path-display">/share/ROMs/GBA</span>. In-game save data syncs back to the server and is stored per game.
+              </p>
+            </div>
+            <span class="pill">ROM root: <span class="path-display" id="gbaCurrentPath">/share/ROMs/GBA</span></span>
+          </div>
+
+          <div class="gba-stage">
+            <iframe
+              class="gba-frame"
+              id="gbaPlayerFrame"
+              title="Game Boy Advance emulator"
+              loading="lazy"
+              referrerpolicy="same-origin"
+              allow="autoplay; fullscreen; gamepad"
+              allowfullscreen
+            ></iframe>
+          </div>
+
+          <div class="gba-controls">
+            <button class="action-btn" type="button" id="gbaFullscreenButton">Fullscreen</button>
+            <label class="gba-volume-wrap" for="gbaVolumeInput">
+              <span>Volume</span>
+              <input type="range" id="gbaVolumeInput" min="0" max="100" step="5" value="65" />
+              <span id="gbaVolumeValue">65%</span>
+            </label>
+          </div>
+
+          <div class="gba-meta-grid">
+            <div class="gba-meta-card">
+              <span class="gba-meta-label">Current Game</span>
+              <div class="gba-meta-value" id="gbaCurrentGame">No ROM selected</div>
+            </div>
+            <div class="gba-meta-card">
+              <span class="gba-meta-label">Server Save File</span>
+              <div class="gba-meta-value" id="gbaSavePath">/share/ROMs/GBA/.airsite-saves</div>
+            </div>
+          </div>
+
+          <p class="status" id="gbaStatus" aria-live="polite">Choose a ROM from the library to start the emulator.</p>
         </article>
 
         <article class="card">
-          <strong>What AirServer does</strong>
-          <ul>
-            <li>Lets users browse from `/share` downward without exposing directories above it.</li>
-            <li>Supports drag-and-drop or picker-based uploads.</li>
-            <li>Refreshes the folder view after uploads complete.</li>
-          </ul>
+          <div class="toolbar gba-toolbar">
+            <button class="action-btn" type="button" id="gbaUpButton">Up One Level</button>
+            <button class="action-btn" type="button" id="gbaRefreshButton">Refresh Library</button>
+          </div>
+
+          <div class="listing media-listing">
+            <div class="listing-header gba-header">
+              <span>Name</span>
+              <span>Size</span>
+              <span>Save</span>
+            </div>
+            <div class="empty-state" id="gbaListingContent">Loading ROM library...</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-network" role="tabpanel" aria-labelledby="tab-network">
+      <div class="network-grid">
+        <article class="card network-hero">
+          <div>
+            <h2 class="section-title">Network</h2>
+            <p class="section-copy">
+              A live snapshot of this server on your LAN, including interfaces, routes, DNS, and devices the machine has discovered nearby.
+            </p>
+          </div>
+          <div class="network-badges">
+            <span class="pill">Host: <span class="path-display" id="networkHostname">Loading...</span></span>
+            <span class="pill">Primary IP: <span id="networkPrimaryIp">Loading...</span></span>
+          </div>
+        </article>
+
+        <article class="card network-summary-card">
+          <div class="card-header">
+            <strong>Core Network Info</strong>
+            <span class="metric-sub">Gateway and DNS</span>
+          </div>
+          <div class="network-summary-list">
+            <div class="network-summary-row"><span>Gateway</span><strong id="networkGateway">Loading...</strong></div>
+            <div class="network-summary-row"><span>DNS Servers</span><strong id="networkDns">Loading...</strong></div>
+            <div class="network-summary-row"><span>FQDN</span><strong id="networkFqdn">Loading...</strong></div>
+          </div>
+        </article>
+
+        <article class="card network-section-card">
+          <div class="card-header">
+            <strong>Interfaces</strong>
+            <span class="metric-sub">State, MAC, MTU, speed, and traffic</span>
+          </div>
+          <div class="network-interface-list" id="networkInterfaceList">
+            <div class="empty-state">Loading interfaces...</div>
+          </div>
+        </article>
+
+        <article class="card network-section-card">
+          <div class="card-header">
+            <strong>Nearby Devices</strong>
+            <span class="metric-sub">Neighbors discovered from ARP</span>
+          </div>
+          <div class="network-neighbor-list" id="networkNeighborList">
+            <div class="empty-state">Loading nearby devices...</div>
+          </div>
         </article>
       </div>
     </section>
@@ -667,6 +1845,10 @@
   <script>
     const tabs = [
       { button: document.getElementById("tab-home"), panel: document.getElementById("panel-home") },
+      { button: document.getElementById("tab-media"), panel: document.getElementById("panel-media") },
+      { button: document.getElementById("tab-gba"), panel: document.getElementById("panel-gba") },
+      { button: document.getElementById("tab-network"), panel: document.getElementById("panel-network") },
+      { button: document.getElementById("tab-system"), panel: document.getElementById("panel-system") },
       { button: document.getElementById("tab-airserver"), panel: document.getElementById("panel-airserver") }
     ];
 
@@ -681,10 +1863,83 @@
     const listingContent = document.getElementById("listingContent");
     const currentPath = document.getElementById("currentPath");
     const dropzone = document.getElementById("dropzone");
+    const polyCanvas = document.getElementById("polyCanvas");
+    const systemHostname = document.getElementById("systemHostname");
+    const systemKernel = document.getElementById("systemKernel");
+    const cpuUsageValue = document.getElementById("cpuUsageValue");
+    const memoryUsageValue = document.getElementById("memoryUsageValue");
+    const uptimeValue = document.getElementById("uptimeValue");
+    const loadAverageValue = document.getElementById("loadAverageValue");
+    const cpuCoreValue = document.getElementById("cpuCoreValue");
+    const cpuUsageBar = document.getElementById("cpuUsageBar");
+    const memoryUsageBar = document.getElementById("memoryUsageBar");
+    const storageList = document.getElementById("storageList");
+    const serviceList = document.getElementById("serviceList");
+    const cpuChart = document.getElementById("cpuChart");
+    const memoryChart = document.getElementById("memoryChart");
+    const cpuChartFrame = document.getElementById("cpuChartFrame");
+    const memoryChartFrame = document.getElementById("memoryChartFrame");
+    const cpuChartTooltip = document.getElementById("cpuChartTooltip");
+    const memoryChartTooltip = document.getElementById("memoryChartTooltip");
+    const cpuChartSummary = document.getElementById("cpuChartSummary");
+    const memoryChartSummary = document.getElementById("memoryChartSummary");
+    const cpuAxisStart = document.getElementById("cpuAxisStart");
+    const cpuAxisMid = document.getElementById("cpuAxisMid");
+    const cpuAxisEnd = document.getElementById("cpuAxisEnd");
+    const memoryAxisStart = document.getElementById("memoryAxisStart");
+    const memoryAxisMid = document.getElementById("memoryAxisMid");
+    const memoryAxisEnd = document.getElementById("memoryAxisEnd");
+    const mediaPlayer = document.getElementById("mediaPlayer");
+    const mediaAlbumArt = document.getElementById("mediaAlbumArt");
+    const mediaTrackTitle = document.getElementById("mediaTrackTitle");
+    const mediaTrackMeta = document.getElementById("mediaTrackMeta");
+    const mediaStatus = document.getElementById("mediaStatus");
+    const mediaListingContent = document.getElementById("mediaListingContent");
+    const mediaCurrentPath = document.getElementById("mediaCurrentPath");
+    const mediaUpButton = document.getElementById("mediaUpButton");
+    const mediaRefreshButton = document.getElementById("mediaRefreshButton");
+    const mediaPrevButton = document.getElementById("mediaPrevButton");
+    const mediaPlayPauseButton = document.getElementById("mediaPlayPauseButton");
+    const mediaNextButton = document.getElementById("mediaNextButton");
+    const gbaPlayerFrame = document.getElementById("gbaPlayerFrame");
+    const gbaFullscreenButton = document.getElementById("gbaFullscreenButton");
+    const gbaVolumeInput = document.getElementById("gbaVolumeInput");
+    const gbaVolumeValue = document.getElementById("gbaVolumeValue");
+    const gbaStatus = document.getElementById("gbaStatus");
+    const gbaListingContent = document.getElementById("gbaListingContent");
+    const gbaCurrentPath = document.getElementById("gbaCurrentPath");
+    const gbaCurrentGame = document.getElementById("gbaCurrentGame");
+    const gbaSavePath = document.getElementById("gbaSavePath");
+    const gbaUpButton = document.getElementById("gbaUpButton");
+    const gbaRefreshButton = document.getElementById("gbaRefreshButton");
+    const gbaStage = document.querySelector(".gba-stage");
+    const networkHostname = document.getElementById("networkHostname");
+    const networkPrimaryIp = document.getElementById("networkPrimaryIp");
+    const networkGateway = document.getElementById("networkGateway");
+    const networkDns = document.getElementById("networkDns");
+    const networkFqdn = document.getElementById("networkFqdn");
+    const networkInterfaceList = document.getElementById("networkInterfaceList");
+    const networkNeighborList = document.getElementById("networkNeighborList");
 
     let selectedFiles = [];
     let activePath = "";
+    let mediaPath = "";
+    let mediaTracks = [];
+    let activeTrackIndex = -1;
+    let activeMediaTrackPath = "";
+    let gbaPath = "";
+    let gbaEntries = [];
+    let activeGbaRomPath = "";
+    let gbaVolume = 0.65;
+    const systemChartState = {
+      cpu: { history: [], hoverIndex: null },
+      memory: { history: [], hoverIndex: null }
+    };
 
+    /**
+     * Activates the selected tab and shows its matching panel.
+     * Input: `tabId` is the id of the tab button to activate. Output: none.
+     */
     function setActiveTab(tabId) {
       tabs.forEach(({ button, panel }) => {
         const active = button.id === tabId;
@@ -697,11 +1952,838 @@
       button.addEventListener("click", () => setActiveTab(button.id));
     });
 
+    document.querySelectorAll("[data-tab-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.getAttribute("data-tab-target");
+        if (target) {
+          setActiveTab(target);
+        }
+      });
+    });
+
+    /**
+     * Updates the shared-drive status banner.
+     * Inputs: `message` is the banner text and `type` optionally adds a state class. Output: none.
+     */
     function setStatus(message, type = "") {
       statusText.textContent = message;
       statusText.className = type ? `status ${type}` : "status";
     }
 
+    /**
+     * Updates the music-player status banner.
+     * Inputs: `message` is the banner text and `type` optionally adds a state class. Output: none.
+     */
+    function setMediaStatus(message, type = "") {
+      mediaStatus.textContent = message;
+      mediaStatus.className = type ? `status ${type}` : "status";
+    }
+
+    /**
+     * Updates the GBA section status banner.
+     * Inputs: `message` is the banner text and `type` optionally adds a state class. Output: none.
+     */
+    function setGbaStatus(message, type = "") {
+      gbaStatus.textContent = message;
+      gbaStatus.className = type ? `status ${type}` : "status";
+    }
+
+    /**
+     * Converts a byte count into a compact human-readable string.
+     * Input: `bytes` is the numeric byte count. Output: a display string such as `12 MB`.
+     */
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) {
+        return "-";
+      }
+
+      if (bytes < 1024) {
+        return `${bytes} B`;
+      }
+
+      const units = ["KB", "MB", "GB", "TB"];
+      let value = bytes / 1024;
+      let unitIndex = 0;
+
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+      }
+
+      return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
+    }
+
+    /**
+     * Formats uptime seconds into a short days-hours-minutes label.
+     * Input: `totalSeconds` is the uptime in seconds. Output: a readable uptime string.
+     */
+    function formatUptime(totalSeconds) {
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+      if (days > 0) {
+        return `${days}d ${hours}h ${minutes}m`;
+      }
+
+      return `${hours}h ${minutes}m`;
+    }
+
+    /**
+     * Builds the audio-stream URL for a track path.
+     * Input: `path` is the track's relative library path. Output: the stream URL string.
+     */
+    function mediaStreamLink(path) {
+      const query = new URLSearchParams({ path });
+      return `/api/media/stream?${query.toString()}`;
+    }
+
+    /**
+     * Builds the artwork URL for a music-library image.
+     * Input: `path` is the image's relative library path. Output: the artwork URL string.
+     */
+    function mediaArtLink(path) {
+      const query = new URLSearchParams({ path });
+      return `/api/media/art?${query.toString()}`;
+    }
+
+    /**
+     * Builds the embedded GBA player URL for a ROM.
+     * Input: `path` is the ROM's relative library path. Output: the player URL string.
+     */
+    function gbaPlayerLink(path) {
+      const query = new URLSearchParams({ path, volume: String(gbaVolume) });
+      return `/gba-player?${query.toString()}`;
+    }
+
+    /**
+     * Enables, disables, and relabels the music transport controls.
+     * Input: none. Output: none.
+     */
+    function updateMediaControlState() {
+      mediaPrevButton.disabled = activeTrackIndex <= 0;
+      mediaNextButton.disabled = activeTrackIndex < 0 || activeTrackIndex >= mediaTracks.length - 1;
+      mediaPlayPauseButton.disabled = activeTrackIndex < 0 && !mediaPlayer.src;
+      mediaPlayPauseButton.textContent = mediaPlayer.paused ? "Play" : "Pause";
+    }
+
+    /**
+     * Formats a Unix timestamp for chart labels and tooltips.
+     * Input: `unixSeconds` is a timestamp in seconds. Output: a localized clock string.
+     */
+    function formatClockTime(unixSeconds) {
+      if (!unixSeconds) {
+        return "--:--";
+      }
+
+      return new Date(unixSeconds * 1000).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    /**
+     * Updates the visible start, midpoint, and end labels for a history chart.
+     * Inputs: `history` is the plotted data and the element arguments are the label nodes. Output: none.
+     */
+    function updateAxisLabels(history, startEl, midEl, endEl) {
+      if (!history.length) {
+        startEl.textContent = "--:--";
+        midEl.textContent = "--:--";
+        endEl.textContent = "Now";
+        return;
+      }
+
+      startEl.textContent = formatClockTime(history[0].timestamp);
+      midEl.textContent = formatClockTime(history[Math.floor(history.length / 2)].timestamp);
+      endEl.textContent = formatClockTime(history[history.length - 1].timestamp);
+    }
+
+    /**
+     * Summarizes chart history with min, average, and max values.
+     * Inputs: `history` is the plotted data and `label` names the metric. Output: a summary string.
+     */
+    function summarizeHistory(history, label) {
+      if (!history.length) {
+        return `Waiting for ${label.toLowerCase()} history...`;
+      }
+
+      const values = history.map((point) => point.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+      return `Last hour • Min ${min.toFixed(0)}% • Avg ${avg.toFixed(0)}% • Max ${max.toFixed(0)}%`;
+    }
+
+    /**
+     * Draws the system history line chart and optional hover marker.
+     * Inputs: chart canvas, history data, gradient colors, and an optional hover index. Output: none.
+     */
+    function drawHistoryChart(canvas, history, colorA, colorB, hoverIndex = null) {
+      if (!canvas) {
+        return;
+      }
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.floor(rect.width * dpr));
+      const height = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const cssWidth = rect.width;
+      const cssHeight = rect.height;
+      context.clearRect(0, 0, cssWidth, cssHeight);
+
+      context.strokeStyle = "rgba(148, 163, 184, 0.14)";
+      context.lineWidth = 1;
+      for (let i = 1; i <= 3; i += 1) {
+        const y = (cssHeight / 4) * i;
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(cssWidth, y);
+        context.stroke();
+      }
+
+      if (history.length < 2) {
+        return;
+      }
+
+      const gradient = context.createLinearGradient(0, 0, cssWidth, cssHeight);
+      gradient.addColorStop(0, colorA);
+      gradient.addColorStop(1, colorB);
+
+      const points = history.map((point, index) => ({
+        x: (cssWidth / (history.length - 1)) * index,
+        y: cssHeight - (Math.max(0, Math.min(100, point.value)) / 100) * (cssHeight - 20) - 10,
+        value: point.value,
+        timestamp: point.timestamp
+      }));
+
+      context.beginPath();
+      context.moveTo(points[0].x, cssHeight - 8);
+      points.forEach((point) => {
+        context.lineTo(point.x, point.y);
+      });
+      context.lineTo(points[points.length - 1].x, cssHeight - 8);
+      context.closePath();
+      context.fillStyle = `${colorA}22`;
+      context.fill();
+
+      context.beginPath();
+      points.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point.y);
+        } else {
+          context.lineTo(point.x, point.y);
+        }
+      });
+
+      context.strokeStyle = gradient;
+      context.lineWidth = 2.5;
+      context.stroke();
+
+      const latest = points[points.length - 1];
+      context.fillStyle = colorB;
+      context.beginPath();
+      context.arc(latest.x, latest.y, 4.5, 0, Math.PI * 2);
+      context.fill();
+
+      if (hoverIndex !== null && points[hoverIndex]) {
+        const point = points[hoverIndex];
+        context.strokeStyle = "rgba(191, 219, 254, 0.35)";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(point.x, 6);
+        context.lineTo(point.x, cssHeight - 6);
+        context.stroke();
+
+        context.fillStyle = "#eff6ff";
+        context.beginPath();
+        context.arc(point.x, point.y, 5, 0, Math.PI * 2);
+        context.fill();
+      }
+    }
+
+    /**
+     * Converts a pointer x-position into the nearest chart history index.
+     * Inputs: chart frame element, history data, and pointer x-coordinate. Output: a history index or `null`.
+     */
+    function getHoverIndex(frame, history, clientX) {
+      if (!history.length) {
+        return null;
+      }
+
+      const rect = frame.getBoundingClientRect();
+      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      const ratio = rect.width <= 0 ? 0 : x / rect.width;
+      return Math.max(0, Math.min(history.length - 1, Math.round(ratio * (history.length - 1))));
+    }
+
+    /**
+     * Shows or hides the chart tooltip for the hovered history point.
+     * Inputs: tooltip element, history data, hover index, and metric label. Output: none.
+     */
+    function updateChartTooltip(tooltip, history, hoverIndex, label) {
+      if (hoverIndex === null || !history[hoverIndex]) {
+        tooltip.hidden = true;
+        return;
+      }
+
+      const point = history[hoverIndex];
+      tooltip.hidden = false;
+      tooltip.innerHTML = `
+        <strong>${label}</strong><br />
+        ${point.value.toFixed(1)}%<br />
+        <span class="metric-sub">${formatClockTime(point.timestamp)}</span>
+      `;
+    }
+
+    /**
+     * Wires pointer hover behavior to a system chart.
+     * Inputs: chart frame metadata, target canvas, tooltip, label, and colors. Output: none.
+     */
+    function attachChartHover(frame, chartKey, canvas, tooltip, label, colorA, colorB) {
+      frame.addEventListener("mousemove", (event) => {
+        const history = systemChartState[chartKey].history;
+        systemChartState[chartKey].hoverIndex = getHoverIndex(frame, history, event.clientX);
+        drawHistoryChart(canvas, history, colorA, colorB, systemChartState[chartKey].hoverIndex);
+        updateChartTooltip(tooltip, history, systemChartState[chartKey].hoverIndex, label);
+      });
+
+      frame.addEventListener("mouseleave", () => {
+        systemChartState[chartKey].hoverIndex = null;
+        drawHistoryChart(canvas, systemChartState[chartKey].history, colorA, colorB, null);
+        updateChartTooltip(tooltip, systemChartState[chartKey].history, null, label);
+      });
+    }
+
+    /**
+     * Renders the storage summary cards from API data.
+     * Input: `items` is an array of storage snapshot objects. Output: none.
+     */
+    function renderStorage(items) {
+      if (!items.length) {
+        storageList.innerHTML = '<div class="empty-state">No storage data available.</div>';
+        return;
+      }
+
+      storageList.innerHTML = items.map((item) => `
+        <div class="storage-item">
+          <div class="storage-top">
+            <strong>${item.label}</strong>
+            <span class="storage-meta">${item.percentUsed.toFixed(0)}% used</span>
+          </div>
+          <div class="meter"><div class="meter-fill" style="width: ${item.percentUsed.toFixed(1)}%"></div></div>
+          <div class="storage-meta">${formatBytes(item.used)} used of ${formatBytes(item.total)} • ${formatBytes(item.free)} free</div>
+        </div>
+      `).join("");
+    }
+
+    /**
+     * Renders the service-state list from API data.
+     * Input: `services` is an array of service status objects. Output: none.
+     */
+    function renderServices(services) {
+      if (!services.length) {
+        serviceList.innerHTML = '<div class="empty-state">No service data available.</div>';
+        return;
+      }
+
+      serviceList.innerHTML = services.map((service) => {
+        const normalized = String(service.state || "unknown").toLowerCase();
+        const pillClass = ["active", "inactive", "failed"].includes(normalized) ? normalized : "";
+        return `
+          <div class="service-item">
+            <div class="service-top">
+              <strong>${service.name}</strong>
+              <span class="service-pill ${pillClass}">${normalized}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * Renders network interface cards for the diagnostics panel.
+     * Input: `interfaces` is an array of interface objects. Output: none.
+     */
+    function renderNetworkInterfaces(interfaces) {
+      if (!interfaces.length) {
+        networkInterfaceList.innerHTML = '<div class="empty-state">No interfaces available.</div>';
+        return;
+      }
+
+      networkInterfaceList.innerHTML = interfaces.map((iface) => `
+        <div class="network-interface-card">
+          <div class="network-interface-top">
+            <strong>${iface.name}</strong>
+            <span class="network-state-pill ${String(iface.state || "").toLowerCase()}">${iface.state || "unknown"}</span>
+          </div>
+          <div class="network-interface-meta">
+            <span>MAC: ${iface.mac || "unknown"}</span>
+            <span>MTU: ${iface.mtu || "-"}</span>
+            <span>Speed: ${iface.speedMbps ? `${iface.speedMbps} Mb/s` : "unknown"}</span>
+          </div>
+          <div class="network-interface-meta">
+            <span>IPv4: ${(iface.addresses || []).length ? iface.addresses.join(", ") : "not detected"}</span>
+          </div>
+          <div class="network-interface-meta">
+            <span>RX: ${formatBytes(iface.rxBytes || 0)}</span>
+            <span>TX: ${formatBytes(iface.txBytes || 0)}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    /**
+     * Renders nearby network neighbors discovered by the server.
+     * Input: `neighbors` is an array of ARP neighbor objects. Output: none.
+     */
+    function renderNetworkNeighbors(neighbors) {
+      if (!neighbors.length) {
+        networkNeighborList.innerHTML = '<div class="empty-state">No nearby devices have been discovered yet.</div>';
+        return;
+      }
+
+      networkNeighborList.innerHTML = neighbors.map((neighbor) => `
+        <div class="network-neighbor-card">
+          <div class="network-neighbor-top">
+            <strong>${neighbor.ip}</strong>
+            <span class="network-state-pill ${String(neighbor.state || "").toLowerCase()}">${neighbor.state || "unknown"}</span>
+          </div>
+          <div class="network-neighbor-meta">
+            <span>MAC: ${neighbor.mac}</span>
+            <span>Interface: ${neighbor.device}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    /**
+     * Fetches the latest network diagnostics and updates the UI.
+     * Input: none. Output: a promise that resolves after the UI refresh completes.
+     */
+    async function loadNetworkStats() {
+      try {
+        const response = await fetch("/api/network");
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load network details.");
+        }
+
+        networkHostname.textContent = payload.hostname || "Unknown";
+        networkPrimaryIp.textContent = payload.primaryIp || "Not detected";
+        networkGateway.textContent = payload.gateway || "Not detected";
+        networkDns.textContent = (payload.dnsServers || []).length ? payload.dnsServers.join(", ") : "Not detected";
+        networkFqdn.textContent = payload.fqdn || "Unknown";
+        renderNetworkInterfaces(payload.interfaces || []);
+        renderNetworkNeighbors(payload.neighbors || []);
+      } catch (error) {
+        networkHostname.textContent = "Unavailable";
+        networkPrimaryIp.textContent = "Unavailable";
+        networkGateway.textContent = "Unavailable";
+        networkDns.textContent = "Unavailable";
+        networkFqdn.textContent = error.message;
+      }
+    }
+
+    /**
+     * Fetches the latest system metrics and redraws the monitoring widgets.
+     * Input: none. Output: a promise that resolves after the UI refresh completes.
+     */
+    async function loadSystemStats() {
+      try {
+        const response = await fetch("/api/system");
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load system stats.");
+        }
+
+        systemHostname.textContent = payload.hostname || "Unknown";
+        systemKernel.textContent = payload.kernel || "Unknown";
+        cpuUsageValue.textContent = payload.cpu.usagePercent.toFixed(0);
+        memoryUsageValue.textContent = payload.memory.percentUsed.toFixed(0);
+        uptimeValue.textContent = formatUptime(payload.uptimeSeconds || 0);
+        loadAverageValue.textContent = `Load avg: ${payload.cpu.loadAverage.one.toFixed(2)} / ${payload.cpu.loadAverage.five.toFixed(2)} / ${payload.cpu.loadAverage.fifteen.toFixed(2)}`;
+        cpuCoreValue.textContent = `CPU cores: ${payload.cpu.cores}`;
+        cpuUsageBar.style.width = `${payload.cpu.usagePercent.toFixed(1)}%`;
+        memoryUsageBar.style.width = `${payload.memory.percentUsed.toFixed(1)}%`;
+        systemChartState.cpu.history = (payload.history || []).map((point) => ({
+          timestamp: point.timestamp,
+          value: point.cpuPercent
+        }));
+        systemChartState.memory.history = (payload.history || []).map((point) => ({
+          timestamp: point.timestamp,
+          value: point.memoryPercent
+        }));
+
+        cpuChartSummary.textContent = summarizeHistory(systemChartState.cpu.history, "CPU");
+        memoryChartSummary.textContent = summarizeHistory(systemChartState.memory.history, "Memory");
+        updateAxisLabels(systemChartState.cpu.history, cpuAxisStart, cpuAxisMid, cpuAxisEnd);
+        updateAxisLabels(systemChartState.memory.history, memoryAxisStart, memoryAxisMid, memoryAxisEnd);
+        drawHistoryChart(cpuChart, systemChartState.cpu.history, "#7dd3fc", "#38bdf8", systemChartState.cpu.hoverIndex);
+        drawHistoryChart(memoryChart, systemChartState.memory.history, "#93c5fd", "#60a5fa", systemChartState.memory.hoverIndex);
+        updateChartTooltip(cpuChartTooltip, systemChartState.cpu.history, systemChartState.cpu.hoverIndex, "CPU Load");
+        updateChartTooltip(memoryChartTooltip, systemChartState.memory.history, systemChartState.memory.hoverIndex, "Memory Use");
+        renderStorage(payload.storage || []);
+        renderServices(payload.services || []);
+      } catch (error) {
+        systemHostname.textContent = "Unavailable";
+        systemKernel.textContent = "Unavailable";
+        uptimeValue.textContent = error.message;
+      }
+    }
+
+    /**
+     * Starts the animated D20 background canvas and its roll interaction.
+     * Input: none. Output: none.
+     */
+    function startPolygonAnimation() {
+      if (!polyCanvas) {
+        return;
+      }
+
+      const context = polyCanvas.getContext("2d");
+      if (!context) {
+        return;
+      }
+
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const basePoints = [
+        { x: -1, y: phi, z: 0 },
+        { x: 1, y: phi, z: 0 },
+        { x: -1, y: -phi, z: 0 },
+        { x: 1, y: -phi, z: 0 },
+        { x: 0, y: -1, z: phi },
+        { x: 0, y: 1, z: phi },
+        { x: 0, y: -1, z: -phi },
+        { x: 0, y: 1, z: -phi },
+        { x: phi, y: 0, z: -1 },
+        { x: phi, y: 0, z: 1 },
+        { x: -phi, y: 0, z: -1 },
+        { x: -phi, y: 0, z: 1 }
+      ].map((point) => {
+        const length = Math.hypot(point.x, point.y, point.z);
+        return {
+          x: point.x / length,
+          y: point.y / length,
+          z: point.z / length
+        };
+      });
+      const triangles = [
+        [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+        [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+        [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+        [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+      ];
+      const edgeSet = new Set();
+      triangles.forEach(([a, b, c]) => {
+        [[a, b], [b, c], [c, a]].forEach(([start, end]) => {
+          const edge = start < end ? `${start}-${end}` : `${end}-${start}`;
+          edgeSet.add(edge);
+        });
+      });
+      const edges = Array.from(edgeSet, (edge) => edge.split("-").map(Number));
+      const stars = Array.from({ length: 28 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        size: Math.random() * 2.6 + 0.8,
+        speed: Math.random() * 0.00008 + 0.00002,
+        alpha: Math.random() * 0.35 + 0.1
+      }));
+      let previousProjected = null;
+      const rollState = {
+        active: false,
+        start: 0,
+        end: 0,
+        result: null,
+        resultShownAt: -Infinity,
+        spinX: 0,
+        spinY: 0,
+        spinZ: 0
+      };
+
+      polyCanvas.tabIndex = 0;
+      polyCanvas.title = "Click to roll the D20";
+
+      /**
+       * Starts a new D20 roll animation if one is not already in progress.
+       * Input: `now` is the animation timestamp. Output: none.
+       */
+      function triggerRoll(now = performance.now()) {
+        if (rollState.active) {
+          return;
+        }
+
+        const duration = 3000 + Math.random() * 5000;
+        rollState.active = true;
+        rollState.start = now;
+        rollState.end = now + duration;
+        rollState.result = Math.floor(Math.random() * 20) + 1;
+        rollState.spinX = 0.008 + Math.random() * 0.006;
+        rollState.spinY = 0.01 + Math.random() * 0.007;
+        rollState.spinZ = 0.007 + Math.random() * 0.005;
+      }
+
+      /**
+       * Resizes the D20 canvas to match its rendered size and device pixel ratio.
+       * Input: none. Output: none.
+       */
+      function resizeCanvas() {
+        const rect = polyCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        polyCanvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        polyCanvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      /**
+       * Rotates a 3D point around the X and Y axes.
+       * Inputs: `point` is the source coordinate and `rx`/`ry` are rotation angles. Output: a rotated point object.
+       */
+      function rotatePoint(point, rx, ry) {
+        const cosX = Math.cos(rx);
+        const sinX = Math.sin(rx);
+        const cosY = Math.cos(ry);
+        const sinY = Math.sin(ry);
+
+        const y1 = point.y * cosX - point.z * sinX;
+        const z1 = point.y * sinX + point.z * cosX;
+        const x2 = point.x * cosY + z1 * sinY;
+        const z2 = -point.x * sinY + z1 * cosY;
+
+        return { x: x2, y: y1, z: z2 };
+      }
+
+      /**
+       * Draws one animation frame for the D20 scene and schedules the next frame.
+       * Input: `time` is the current animation timestamp. Output: none.
+       */
+      function drawFrame(time) {
+        const width = polyCanvas.clientWidth;
+        const height = polyCanvas.clientHeight;
+        const centerX = width / 2;
+        const centerY = height / 2 - 16;
+        const scale = Math.min(width, height) * 0.25;
+        const driftX = Math.sin(time * 0.00028) * width * 0.045;
+        const driftY = Math.cos(time * 0.00022) * height * 0.035;
+        let rx = time * 0.00024;
+        let ry = time * 0.00036;
+        let rz = time * 0.00019;
+
+        context.clearRect(0, 0, width, height);
+
+        if (rollState.active) {
+          const duration = rollState.end - rollState.start;
+          const elapsed = time - rollState.start;
+          const progress = Math.min(1, Math.max(0, elapsed / duration));
+          const momentum = Math.pow(1 - progress, 1.35);
+
+          rx += elapsed * rollState.spinX * (0.35 + momentum * 1.9);
+          ry += elapsed * rollState.spinY * (0.35 + momentum * 2.1);
+          rz += elapsed * rollState.spinZ * (0.35 + momentum * 1.7);
+
+          if (time >= rollState.end) {
+            rollState.active = false;
+            rollState.resultShownAt = time;
+          }
+        }
+
+        const haze = context.createLinearGradient(0, 0, 0, height);
+        haze.addColorStop(0, "rgba(125, 211, 252, 0.04)");
+        haze.addColorStop(0.5, "rgba(15, 23, 42, 0)");
+        haze.addColorStop(1, "rgba(14, 165, 233, 0.08)");
+        context.fillStyle = haze;
+        context.fillRect(0, 0, width, height);
+
+        stars.forEach((star, index) => {
+          const x = (star.x * width + Math.sin(time * star.speed * 2000 + index) * 22 + width) % width;
+          const y = (star.y * height + time * star.speed * height * 0.3) % height;
+          context.fillStyle = `rgba(191, 219, 254, ${star.alpha.toFixed(3)})`;
+          context.beginPath();
+          context.arc(x, y, star.size, 0, Math.PI * 2);
+          context.fill();
+        });
+
+        const glow = context.createRadialGradient(
+          centerX + driftX,
+          centerY + driftY,
+          scale * 0.12,
+          centerX + driftX,
+          centerY + driftY,
+          scale * 2.8
+        );
+        glow.addColorStop(0, "rgba(125, 211, 252, 0.2)");
+        glow.addColorStop(0.55, "rgba(56, 189, 248, 0.08)");
+        glow.addColorStop(1, "rgba(125, 211, 252, 0)");
+        context.fillStyle = glow;
+        context.beginPath();
+        context.arc(centerX + driftX, centerY + driftY, scale * 2.8, 0, Math.PI * 2);
+        context.fill();
+
+        const animatedPoints = basePoints.map((point, index) => {
+          if (index === 0 || index === 3) {
+            const pulse = 1 + Math.sin(time * 0.0011 + index) * 0.06;
+            return {
+              x: point.x * pulse,
+              y: point.y * (1 + Math.cos(time * 0.0009 + index) * 0.08),
+              z: point.z * pulse
+            };
+          }
+
+          return point;
+        });
+
+        const projected = animatedPoints.map((point) => {
+          const firstTurn = rotatePoint(point, rx, ry);
+          const rotated = {
+            x: firstTurn.x * Math.cos(rz) - firstTurn.y * Math.sin(rz),
+            y: firstTurn.x * Math.sin(rz) + firstTurn.y * Math.cos(rz),
+            z: firstTurn.z
+          };
+          const perspective = 1 / (1.9 - rotated.z);
+
+          return {
+            x: centerX + driftX + rotated.x * scale * perspective,
+            y: centerY + driftY + rotated.y * scale * perspective,
+            z: rotated.z,
+            perspective
+          };
+        });
+
+        if (previousProjected) {
+          context.lineWidth = 1.1;
+          edges.forEach(([start, end]) => {
+            const prevA = previousProjected[start];
+            const prevB = previousProjected[end];
+            const nextA = projected[start];
+            const nextB = projected[end];
+
+            context.strokeStyle = "rgba(125, 211, 252, 0.08)";
+            context.beginPath();
+            context.moveTo(prevA.x, prevA.y);
+            context.lineTo(nextA.x, nextA.y);
+            context.moveTo(prevB.x, prevB.y);
+            context.lineTo(nextB.x, nextB.y);
+            context.stroke();
+          });
+        }
+
+        triangles
+          .map((face) => ({
+            face,
+            depth: face.reduce((sum, index) => sum + projected[index].z, 0) / face.length
+          }))
+          .sort((left, right) => left.depth - right.depth)
+          .forEach(({ face, depth }) => {
+            const [aIndex, bIndex, cIndex] = face;
+            const a = projected[aIndex];
+            const b = projected[bIndex];
+            const c = projected[cIndex];
+            const alpha = 0.035 + (depth + 1) * 0.045;
+
+            context.fillStyle = `rgba(125, 211, 252, ${alpha.toFixed(3)})`;
+            context.beginPath();
+            context.moveTo(a.x, a.y);
+            context.lineTo(b.x, b.y);
+            context.lineTo(c.x, c.y);
+            context.closePath();
+            context.fill();
+          });
+
+        context.lineWidth = 1.5;
+        edges.forEach(([start, end], index) => {
+          const a = projected[start];
+          const b = projected[end];
+          const alpha = 0.24 + (((a.z + b.z) / 2) + 1) * 0.2;
+
+          context.strokeStyle = `rgba(125, 211, 252, ${alpha.toFixed(3)})`;
+          context.beginPath();
+          context.moveTo(a.x, a.y);
+          context.lineTo(b.x, b.y);
+          context.stroke();
+
+          if (index % 5 === 0) {
+            context.strokeStyle = `rgba(255, 255, 255, ${(alpha * 0.22).toFixed(3)})`;
+            context.beginPath();
+            context.moveTo(centerX + driftX, centerY + driftY);
+            context.lineTo(a.x, a.y);
+            context.stroke();
+          }
+        });
+
+        projected
+          .slice()
+          .sort((left, right) => left.z - right.z)
+          .forEach((point) => {
+            const radius = 2.2 + point.perspective * 3.4;
+            context.fillStyle = `rgba(191, 219, 254, ${(0.26 + (point.z + 1) * 0.2).toFixed(3)})`;
+            context.beginPath();
+            context.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            context.fill();
+          });
+
+        const showResult = !rollState.active && Number.isInteger(rollState.result) && time - rollState.resultShownAt < 5000;
+        if (rollState.active || showResult) {
+          const badgeText = rollState.active ? "Rolling..." : `Rolled ${rollState.result}`;
+          const subText = rollState.active ? "The D20 is spinning" : "Click the D20 to roll again";
+          const badgeWidth = Math.min(width - 36, 176);
+          const badgeX = width - badgeWidth - 18;
+          const badgeY = 18;
+          const badgeHeight = 72;
+
+          context.fillStyle = "rgba(7, 16, 31, 0.78)";
+          context.strokeStyle = "rgba(125, 211, 252, 0.26)";
+          context.lineWidth = 1;
+          context.beginPath();
+          context.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 18);
+          context.fill();
+          context.stroke();
+
+          context.fillStyle = "rgba(239, 246, 255, 0.96)";
+          context.font = "700 18px 'Segoe UI', sans-serif";
+          context.textAlign = "left";
+          context.fillText(badgeText, badgeX + 16, badgeY + 29);
+
+          context.fillStyle = "rgba(159, 180, 211, 0.94)";
+          context.font = "500 12px 'Segoe UI', sans-serif";
+          context.fillText(subText, badgeX + 16, badgeY + 50);
+        } else {
+          context.fillStyle = "rgba(159, 180, 211, 0.9)";
+          context.font = "600 13px 'Segoe UI', sans-serif";
+          context.textAlign = "center";
+          context.fillText("Click the D20 to roll", width / 2, height - 22);
+        }
+
+        previousProjected = projected.map((point) => ({ ...point }));
+        requestAnimationFrame(drawFrame);
+      }
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      polyCanvas.addEventListener("click", () => triggerRoll());
+      polyCanvas.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          triggerRoll();
+        }
+      });
+      requestAnimationFrame(drawFrame);
+    }
+
+    /**
+     * Tracks the files currently selected for upload and updates the badge.
+     * Input: `files` is a `FileList` or array-like collection. Output: none.
+     */
     function updateSelection(files) {
       selectedFiles = Array.from(files);
       selectionPill.textContent = selectedFiles.length
@@ -709,6 +2791,10 @@
         : "No files selected";
     }
 
+    /**
+     * Formats a file size for directory and media listings.
+     * Input: `size` is the numeric file size. Output: a display string.
+     */
     function formatSize(size) {
       if (size === null || size === undefined || size === "") {
         return "-";
@@ -730,15 +2816,27 @@
       return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
     }
 
+    /**
+     * Chooses the short label used as the shared-drive row icon.
+     * Input: `entry` is a listing item object. Output: a short icon label string.
+     */
     function iconForEntry(entry) {
       return entry.kind === "directory" ? "DIR" : "DL";
     }
 
+    /**
+     * Builds the download URL for a shared-drive file.
+     * Input: `path` is the file's relative path. Output: the download URL string.
+     */
     function downloadLink(path) {
       const query = new URLSearchParams({ path });
       return `/api/download?${query.toString()}`;
     }
 
+    /**
+     * Computes the parent folder for a relative path string.
+     * Input: `path` is the current relative path. Output: the parent path string.
+     */
     function parentPath(path) {
       if (!path) {
         return "";
@@ -749,6 +2847,306 @@
       return segments.join("/");
     }
 
+    /**
+     * Loads the selected track into the player and updates now-playing state.
+     * Input: `trackPath` is the chosen track's relative path. Output: none.
+     */
+    function playMediaTrack(trackPath) {
+      const index = mediaTracks.findIndex((track) => track.path === trackPath);
+      const track = index >= 0 ? mediaTracks[index] : null;
+      if (!track) {
+        setMediaStatus("Track not found in the current view.", "error");
+        return;
+      }
+
+      activeTrackIndex = index;
+      activeMediaTrackPath = track.path;
+      mediaPlayer.src = mediaStreamLink(track.path);
+      mediaTrackTitle.textContent = track.name;
+      mediaTrackMeta.textContent = `${track.format ? track.format.toUpperCase() : "Audio"} • ${formatSize(track.size)}`;
+      if (track.artPath) {
+        mediaAlbumArt.src = mediaArtLink(track.artPath);
+        mediaAlbumArt.alt = `${track.name} album art`;
+        mediaAlbumArt.closest(".now-playing")?.classList.add("has-art");
+      } else {
+        mediaAlbumArt.removeAttribute("src");
+        mediaAlbumArt.alt = "";
+        mediaAlbumArt.closest(".now-playing")?.classList.remove("has-art");
+      }
+      mediaPlayer.play().catch(() => {
+        setMediaStatus("Playback is ready. Press play if your browser blocked autoplay.");
+      });
+      setMediaStatus(`Streaming ${track.name}`, "success");
+      updateMediaPlayingState();
+      updateMediaControlState();
+    }
+
+    /**
+     * Synchronizes listing-row styling with the current playback state.
+     * Input: none. Output: none.
+     */
+    function updateMediaPlayingState() {
+      const isActivelyPlaying = !!activeMediaTrackPath && !!mediaPlayer.src && !mediaPlayer.paused && !mediaPlayer.ended;
+      const rows = mediaListingContent.querySelectorAll(".media-row.track-row");
+
+      rows.forEach((row) => {
+        const isCurrent = row.dataset.path === activeMediaTrackPath;
+        row.classList.toggle("is-current", isCurrent);
+        row.classList.toggle("is-playing", isCurrent && isActivelyPlaying);
+        row.setAttribute("aria-current", isCurrent ? "true" : "false");
+
+        const state = row.querySelector(".media-row-state");
+        if (state) {
+          state.textContent = isCurrent ? (isActivelyPlaying ? "Playing" : "Selected") : "";
+        }
+      });
+    }
+
+    /**
+     * Renders the music library rows for folders and tracks.
+     * Input: `entries` is an array of music listing objects. Output: none.
+     */
+    function renderMediaListing(entries) {
+      if (!entries.length) {
+        mediaListingContent.innerHTML = '<div class="empty-state">This music folder is empty.</div>';
+        mediaTracks = [];
+        return;
+      }
+
+      mediaTracks = entries.filter((entry) => entry.kind === "track");
+      activeTrackIndex = mediaTracks.findIndex((track) => track.path === activeMediaTrackPath);
+      updateMediaControlState();
+      const rows = entries.map((entry) => {
+        const button = document.createElement("button");
+        const isCurrent = entry.kind === "track" && entry.path === activeMediaTrackPath;
+        const isPlaying = isCurrent && !!mediaPlayer.src && !mediaPlayer.paused && !mediaPlayer.ended;
+        button.className = `media-row ${entry.kind === "directory" ? "directory-row" : "track-row"}${isCurrent ? " is-current" : ""}${isPlaying ? " is-playing" : ""}`;
+        button.type = "button";
+        button.title = entry.name;
+        if (entry.kind === "track") {
+          button.dataset.path = entry.path;
+          button.setAttribute("aria-current", isCurrent ? "true" : "false");
+        }
+        button.innerHTML = `
+          <span class="entry-name">
+            <span class="entry-icon">${entry.kind === "directory" ? "DIR" : "MUS"}</span>
+            <span class="entry-label" title="${entry.name}">${entry.name}</span>
+          </span>
+          <span>${entry.kind === "directory" ? "-" : formatSize(entry.size)}</span>
+          <span class="media-track-meta">
+            <span>${entry.kind === "directory" ? "folder" : (entry.format || "track")}</span>
+            ${entry.kind === "track" ? `<span class="media-row-state">${isPlaying ? "Playing" : (isCurrent ? "Selected" : "")}</span>` : ""}
+          </span>
+        `;
+
+        if (entry.kind === "directory") {
+          button.addEventListener("click", () => loadMediaListing(entry.path));
+        } else {
+          button.addEventListener("click", () => playMediaTrack(entry.path));
+        }
+
+        return button;
+      });
+
+      mediaListingContent.replaceChildren(...rows);
+      updateMediaPlayingState();
+    }
+
+    /**
+     * Fetches a music folder listing and refreshes the music browser.
+     * Input: `path` is the optional relative folder path. Output: a promise that resolves after rendering.
+     */
+    async function loadMediaListing(path = "") {
+      const query = new URLSearchParams();
+      if (path) {
+        query.set("path", path);
+      }
+
+      mediaCurrentPath.textContent = path ? `/share/Music/${path}` : "/share/Music";
+      mediaListingContent.innerHTML = '<div class="empty-state">Loading music library...</div>';
+
+      try {
+        const response = await fetch(`/api/media/list?${query.toString()}`);
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load music library.");
+        }
+
+        mediaPath = payload.currentPath || "";
+        mediaCurrentPath.textContent = mediaPath ? `/share/Music/${mediaPath}` : "/share/Music";
+        mediaUpButton.disabled = !mediaPath;
+        renderMediaListing(payload.entries || []);
+      } catch (error) {
+        mediaListingContent.innerHTML = `<div class="empty-state">${error.message}</div>`;
+        setMediaStatus(error.message, "error");
+      }
+    }
+
+    /**
+     * Starts playback of the previous track when one exists.
+     * Input: none. Output: none.
+     */
+    function playPreviousTrack() {
+      if (activeTrackIndex > 0) {
+        playMediaTrack(mediaTracks[activeTrackIndex - 1].path);
+      }
+    }
+
+    /**
+     * Starts playback of the next track when one exists.
+     * Input: none. Output: none.
+     */
+    function playNextTrack() {
+      if (activeTrackIndex >= 0 && activeTrackIndex < mediaTracks.length - 1) {
+        playMediaTrack(mediaTracks[activeTrackIndex + 1].path);
+      }
+    }
+
+    /**
+     * Plays or pauses the current track, or starts the first track if idle.
+     * Input: none. Output: none.
+     */
+    function toggleMediaPlayback() {
+      if (!mediaPlayer.src && mediaTracks.length) {
+        playMediaTrack(mediaTracks[0].path);
+        return;
+      }
+
+      if (mediaPlayer.paused) {
+        mediaPlayer.play().catch(() => {
+          setMediaStatus("Playback is ready. Press play again if your browser blocked autoplay.");
+        });
+      } else {
+        mediaPlayer.pause();
+      }
+    }
+
+    /**
+     * Highlights the ROM row that matches the active emulator session.
+     * Input: none. Output: none.
+     */
+    function updateGbaSelectionState() {
+      const rows = gbaListingContent.querySelectorAll(".gba-row.rom-row");
+      rows.forEach((row) => {
+        row.classList.toggle("is-current", row.dataset.path === activeGbaRomPath);
+      });
+    }
+
+    /**
+     * Updates the visible GBA game and save-path labels.
+     * Input: `entry` is the selected ROM object or `null`. Output: none.
+     */
+    function updateGbaInfo(entry = null) {
+      if (!entry) {
+        gbaCurrentGame.textContent = "No ROM selected";
+        gbaSavePath.textContent = "/share/ROMs/GBA/.airsite-saves";
+        return;
+      }
+
+      gbaCurrentGame.textContent = entry.name;
+      gbaSavePath.textContent = entry.savePath
+        ? `/share/ROMs/GBA/.airsite-saves/${entry.savePath}`
+        : "/share/ROMs/GBA/.airsite-saves";
+    }
+
+    /**
+     * Loads a selected ROM into the embedded emulator frame.
+     * Input: `entry` is the selected ROM object. Output: none.
+     */
+    function launchGbaRom(entry) {
+      activeGbaRomPath = entry.path;
+      gbaPlayerFrame.src = gbaPlayerLink(entry.path);
+      updateGbaInfo(entry);
+      updateGbaSelectionState();
+      setGbaStatus(`Launching ${entry.name}. In-game saves will sync to the server save file shown above.`, "success");
+    }
+
+    /**
+     * Renders the GBA library rows for folders and ROMs.
+     * Input: `entries` is an array of GBA listing objects. Output: none.
+     */
+    function renderGbaListing(entries) {
+      if (!entries.length) {
+        gbaListingContent.innerHTML = '<div class="empty-state">This GBA folder is empty.</div>';
+        gbaEntries = [];
+        return;
+      }
+
+      gbaEntries = entries;
+      const rows = entries.map((entry) => {
+        const button = document.createElement("button");
+        const isCurrent = entry.kind === "rom" && entry.path === activeGbaRomPath;
+        button.className = `gba-row ${entry.kind === "directory" ? "directory-row" : "rom-row"}${isCurrent ? " is-current" : ""}`;
+        button.type = "button";
+        button.title = entry.name;
+
+        if (entry.kind === "rom") {
+          button.dataset.path = entry.path;
+        }
+
+        button.innerHTML = `
+          <span class="entry-name">
+            <span class="entry-icon">${entry.kind === "directory" ? "DIR" : "GBA"}</span>
+            <span class="entry-label" title="${entry.name}">${entry.name}</span>
+          </span>
+          <span>${entry.kind === "directory" ? "-" : formatSize(entry.size)}</span>
+          <span><span class="gba-row-save ${entry.saveExists ? "ready" : ""}">${entry.kind === "directory" ? "folder" : (entry.saveExists ? "Saved" : "New")}</span></span>
+        `;
+
+        if (entry.kind === "directory") {
+          button.addEventListener("click", () => loadGbaListing(entry.path));
+        } else {
+          button.addEventListener("click", () => launchGbaRom(entry));
+        }
+
+        return button;
+      });
+
+      gbaListingContent.replaceChildren(...rows);
+      updateGbaSelectionState();
+    }
+
+    /**
+     * Fetches a GBA folder listing and refreshes the ROM browser.
+     * Input: `path` is the optional relative folder path. Output: a promise that resolves after rendering.
+     */
+    async function loadGbaListing(path = "") {
+      const query = new URLSearchParams();
+      if (path) {
+        query.set("path", path);
+      }
+
+      gbaCurrentPath.textContent = path ? `/share/ROMs/GBA/${path}` : "/share/ROMs/GBA";
+      gbaListingContent.innerHTML = '<div class="empty-state">Loading ROM library...</div>';
+
+      try {
+        const response = await fetch(`/api/gba/list?${query.toString()}`);
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load GBA library.");
+        }
+
+        gbaPath = payload.currentPath || "";
+        gbaCurrentPath.textContent = gbaPath ? `/share/ROMs/GBA/${gbaPath}` : "/share/ROMs/GBA";
+        gbaUpButton.disabled = !gbaPath;
+        renderGbaListing(payload.entries || []);
+
+        const activeEntry = (payload.entries || []).find((entry) => entry.path === activeGbaRomPath);
+        if (activeEntry) {
+          updateGbaInfo(activeEntry);
+        } else if (!activeGbaRomPath) {
+          updateGbaInfo(null);
+        }
+      } catch (error) {
+        gbaListingContent.innerHTML = `<div class="empty-state">${error.message}</div>`;
+        setGbaStatus(error.message, "error");
+      }
+    }
+
+    /**
+     * Renders the shared-drive directory listing.
+     * Input: `entries` is an array of folder and file objects. Output: none.
+     */
     function renderListing(entries) {
       if (!entries.length) {
         listingContent.innerHTML = '<div class="empty-state">This folder is empty.</div>';
@@ -784,6 +3182,10 @@
       listingContent.replaceChildren(...rows);
     }
 
+    /**
+     * Fetches a shared-drive folder listing and refreshes the browser UI.
+     * Input: `path` is the optional relative folder path. Output: a promise that resolves after rendering.
+     */
     async function loadListing(path = "") {
       const query = new URLSearchParams();
       if (path) {
@@ -810,6 +3212,10 @@
       }
     }
 
+    /**
+     * Uploads the currently selected files into the active shared-drive folder.
+     * Input: none. Output: a promise that resolves after the upload flow finishes.
+     */
     async function uploadFiles() {
       if (!selectedFiles.length) {
         setStatus("Choose at least one file before uploading.", "error");
@@ -850,6 +3256,10 @@
       }
     }
 
+    /**
+     * Creates a new subfolder under the active shared-drive location.
+     * Input: none. Output: a promise that resolves after the folder flow finishes.
+     */
     async function createFolder() {
       const folderName = folderNameInput.value.trim();
 
@@ -904,6 +3314,65 @@
     });
     refreshButton.addEventListener("click", () => loadListing(activePath));
     upButton.addEventListener("click", () => loadListing(parentPath(activePath)));
+    mediaRefreshButton.addEventListener("click", () => loadMediaListing(mediaPath));
+    mediaUpButton.addEventListener("click", () => loadMediaListing(parentPath(mediaPath)));
+    gbaRefreshButton.addEventListener("click", () => loadGbaListing(gbaPath));
+    gbaUpButton.addEventListener("click", () => loadGbaListing(parentPath(gbaPath)));
+    gbaFullscreenButton.addEventListener("click", async () => {
+      if (!gbaStage) {
+        return;
+      }
+
+      if (document.fullscreenElement === gbaStage) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      await gbaStage.requestFullscreen();
+    });
+    gbaVolumeInput.addEventListener("input", () => {
+      gbaVolume = Number(gbaVolumeInput.value) / 100;
+      gbaVolumeValue.textContent = `${gbaVolumeInput.value}%`;
+    });
+    gbaVolumeInput.addEventListener("change", () => {
+      const activeEntry = gbaEntries.find((entry) => entry.path === activeGbaRomPath && entry.kind === "rom");
+      if (activeEntry) {
+        launchGbaRom(activeEntry);
+      }
+    });
+    mediaPrevButton.addEventListener("click", playPreviousTrack);
+    mediaPlayPauseButton.addEventListener("click", toggleMediaPlayback);
+    mediaNextButton.addEventListener("click", playNextTrack);
+    mediaPlayer.addEventListener("ended", () => {
+      if (activeTrackIndex >= 0 && activeTrackIndex < mediaTracks.length - 1) {
+        playMediaTrack(mediaTracks[activeTrackIndex + 1].path);
+      }
+      updateMediaControlState();
+    });
+    mediaPlayer.addEventListener("error", () => {
+      setMediaStatus("This browser may not support FLAC playback for the selected track.", "error");
+      updateMediaPlayingState();
+      updateMediaControlState();
+    });
+    mediaPlayer.addEventListener("play", () => {
+      updateMediaPlayingState();
+      updateMediaControlState();
+    });
+    mediaPlayer.addEventListener("pause", () => {
+      updateMediaPlayingState();
+      updateMediaControlState();
+    });
+    mediaPlayer.addEventListener("loadedmetadata", () => {
+      updateMediaPlayingState();
+      updateMediaControlState();
+    });
+    mediaAlbumArt.addEventListener("error", () => {
+      mediaAlbumArt.removeAttribute("src");
+      mediaAlbumArt.alt = "";
+      mediaAlbumArt.closest(".now-playing")?.classList.remove("has-art");
+    });
+    attachChartHover(cpuChartFrame, "cpu", cpuChart, cpuChartTooltip, "CPU Load", "#7dd3fc", "#38bdf8");
+    attachChartHover(memoryChartFrame, "memory", memoryChart, memoryChartTooltip, "Memory Use", "#93c5fd", "#60a5fa");
 
     ["dragenter", "dragover"].forEach((eventName) => {
       dropzone.addEventListener(eventName, (event) => {
@@ -926,7 +3395,15 @@
       }
     });
 
+    startPolygonAnimation();
+    loadMediaListing();
+    loadGbaListing();
+    loadNetworkStats();
+    loadSystemStats();
+    window.setInterval(loadNetworkStats, 15000);
+    window.setInterval(loadSystemStats, 10000);
     loadListing();
+    updateMediaControlState();
   </script>
 </body>
 </html>
