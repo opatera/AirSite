@@ -86,6 +86,18 @@ def resolve_rooted_path(root: Path, raw_path: str) -> tuple[Path, str]:
     return destination, relative
 
 
+def resolve_repo_path(raw_path: str) -> tuple[Path, str]:
+    """Resolve a relative path inside the AirSite repository directory.
+
+    Args:
+        raw_path: Relative path requested by the client.
+
+    Returns:
+        A tuple of the resolved filesystem path and the normalized relative path.
+    """
+    return resolve_rooted_path(REPO_ROOT, raw_path)
+
+
 def human_sort_key(entry: os.DirEntry) -> tuple[int, str]:
     """Sort directories before files and compare names case-insensitively.
 
@@ -577,6 +589,8 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
         if parsed.path == "/":
             return self.serve_index()
+        if parsed.path.startswith("/assets/"):
+            return self.serve_static_file(parsed.path.lstrip("/"))
         if parsed.path == "/api/list":
             return self.handle_list(parsed.query)
         if parsed.path == "/api/download":
@@ -625,6 +639,36 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def serve_static_file(self, raw_path: str) -> None:
+        """Serve a static file from the repository, such as images or icons.
+
+        Args:
+            raw_path: Relative path inside the repo, typically under `assets/`.
+        """
+        try:
+            target_file, _relative = resolve_repo_path(raw_path)
+        except ValueError as exc:
+            return self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+
+        if not target_file.exists():
+            return self.send_error(HTTPStatus.NOT_FOUND, "Static file not found")
+        if not target_file.is_file():
+            return self.send_error(HTTPStatus.BAD_REQUEST, "Static target must be a file")
+
+        content_type, _encoding = mimetypes.guess_type(target_file.name)
+        content_type = content_type or "application/octet-stream"
+
+        try:
+            body = target_file.read_bytes()
+        except PermissionError:
+            return self.send_error(HTTPStatus.FORBIDDEN, "Permission denied while reading static file")
+
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
