@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CERT_FILE="/etc/ssl/airsite/airsite.crt"
+KEY_FILE="/etc/ssl/airsite/airsite.key"
+
+sync_repo() {
+  local branch
+  branch="$(git -C "$REPO_DIR" branch --show-current)"
+
+  if [[ -z "$branch" ]]; then
+    echo "No current git branch detected. Deploying current checkout without pulling."
+    return
+  fi
+
+  if ! git -C "$REPO_DIR" remote get-url origin >/dev/null 2>&1; then
+    echo "No origin remote configured. Deploying current checkout without pulling."
+    return
+  fi
+
+  if [[ -n "$(git -C "$REPO_DIR" status --porcelain)" ]]; then
+    echo "Local changes detected. Skipping git pull and deploying the current working tree."
+    return
+  fi
+
+  echo "Fetching latest changes from origin/$branch..."
+  git -C "$REPO_DIR" fetch origin "$branch"
+  git -C "$REPO_DIR" pull --ff-only origin "$branch"
+}
+
+if [[ "${EUID}" -ne 0 ]]; then
+  if [[ "${AIRDEPLOY_ALREADY_SYNCED:-0}" != "1" ]]; then
+    sync_repo
+  fi
+
+  exec sudo AIRDEPLOY_ALREADY_SYNCED=1 "$REPO_DIR/airdeploy" "$@"
+fi
+
+if [[ ! -f "$CERT_FILE" || ! -f "$KEY_FILE" ]]; then
+  echo "HTTPS certificate not found."
+  echo "Run: $REPO_DIR/deploy/generate-cert.sh [extra-host-or-ip ...]"
+  exit 1
+fi
+
+install -m 0644 "$REPO_DIR/deploy/airsite.service" /etc/systemd/system/airsite.service
+install -m 0644 "$REPO_DIR/deploy/airsite.nginx.conf" /etc/nginx/sites-available/AirSite
+
+if [[ ! -L /etc/nginx/sites-enabled/AirSite ]]; then
+  ln -s /etc/nginx/sites-available/AirSite /etc/nginx/sites-enabled/AirSite
+fi
+
+systemctl daemon-reload
+systemctl enable airsite.service
+systemctl restart airsite.service
+nginx -t
+systemctl reload nginx
+
+echo "AirSite deployed successfully."
+echo "App service: airsite.service"
+echo "Nginx site: /etc/nginx/sites-available/AirSite"
+echo "HTTPS cert: $CERT_FILE"
