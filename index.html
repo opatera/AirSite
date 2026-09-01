@@ -3066,7 +3066,7 @@
       gbaPlayerFrame.src = gbaPlayerLink(entry.path);
       updateGbaInfo(entry);
       updateGbaSelectionState();
-      setGbaStatus(`Launching ${entry.name}. In-game saves will sync to the server save file shown above.`, "success");
+      setGbaStatus(`Loading ${entry.name}. Press the Play button in the emulator when it appears.`);
     }
 
     /**
@@ -3341,12 +3341,24 @@
     gbaVolumeInput.addEventListener("input", () => {
       gbaVolume = Number(gbaVolumeInput.value) / 100;
       gbaVolumeValue.textContent = `${gbaVolumeInput.value}%`;
-    });
-    gbaVolumeInput.addEventListener("change", () => {
-      const activeEntry = gbaEntries.find((entry) => entry.path === activeGbaRomPath && entry.kind === "rom");
-      if (activeEntry) {
-        launchGbaRom(activeEntry);
+      if (activeGbaRomPath && gbaPlayerFrame.contentWindow) {
+        gbaPlayerFrame.contentWindow.postMessage({
+          source: "airsite-gba-host",
+          type: "volume",
+          value: gbaVolume
+        }, window.location.origin);
       }
+    });
+    window.addEventListener("message", (event) => {
+      if (
+        event.origin !== window.location.origin ||
+        event.source !== gbaPlayerFrame.contentWindow ||
+        event.data?.source !== "airsite-gba-player"
+      ) {
+        return;
+      }
+
+      setGbaStatus(event.data.message || "Emulator status updated.", event.data.type || "");
     });
     mediaPrevButton.addEventListener("click", playPreviousTrack);
     mediaPlayPauseButton.addEventListener("click", toggleMediaPlayback);

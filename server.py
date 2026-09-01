@@ -13,6 +13,7 @@ import time
 from collections import deque
 from email.parser import BytesParser
 from email.policy import default
+from email.utils import formatdate
 from html import escape
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -150,6 +151,27 @@ def gba_save_path_for_rom(rom_relative: str) -> tuple[Path, str]:
     save_relative = gba_save_relative_path(rom_relative)
     target_file, _ = resolve_rooted_path(GBA_SAVE_ROOT, save_relative)
     return target_file, save_relative
+
+
+def gba_existing_save_path_for_rom(rom_relative: str) -> Path | None:
+    """Find the canonical or legacy save file for a ROM.
+
+    Saves created by AirSite live under ``.airsite-saves``. Older libraries may
+    already have a same-name ``.sav`` file beside the ROM, so read that as a
+    fallback without moving or overwriting user data.
+    """
+    save_path, _save_relative = gba_save_path_for_rom(rom_relative)
+    if save_path.is_file():
+        return save_path
+
+    legacy_save_path, _legacy_relative = resolve_rooted_path(
+        GBA_ROOT,
+        gba_save_relative_path(rom_relative),
+    )
+    if legacy_save_path.is_file():
+        return legacy_save_path
+
+    return None
 
 
 def find_album_art(directory: Path) -> Path | None:
@@ -616,6 +638,15 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
         self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
+    def do_HEAD(self) -> None:
+        """Return metadata for resources that are validated before download."""
+        parsed = urlparse(self.path)
+
+        if parsed.path == "/api/gba/rom":
+            return self.handle_gba_rom(parsed.query, head_only=True)
+
+        self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
+
     def do_POST(self) -> None:
         """Route incoming POST requests to the matching upload or mutation handler."""
         parsed = urlparse(self.path)
@@ -993,7 +1024,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
                 save_exists = False
                 if entry.is_file():
                     _save_path, save_relative = gba_save_path_for_rom(item_relative)
-                    save_exists = _save_path.exists()
+                    save_exists = gba_existing_save_path_for_rom(item_relative) is not None
 
                 entries.append(
                     {
@@ -1017,11 +1048,12 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             }
         )
 
-    def handle_gba_rom(self, query: str) -> None:
+    def handle_gba_rom(self, query: str, head_only: bool = False) -> None:
         """Stream a GBA ROM file to the browser-based emulator.
 
         Args:
             query: Raw query string containing the ROM `path`.
+            head_only: When true, return the same cache metadata without a body.
         """
         params = parse_qs(query)
         requested_path = params.get("path", [""])[0]
@@ -1037,15 +1069,31 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             return self.send_json({"error": "ROM target must be a .gba file."}, status=HTTPStatus.BAD_REQUEST)
 
         try:
-            file_size = target_file.stat().st_size
-            with target_file.open("rb") as source:
-                self.send_response(HTTPStatus.OK)
-                self.send_header("Content-Type", "application/octet-stream")
-                self.send_header("Content-Length", str(file_size))
-                self.send_header("Cache-Control", "no-store")
-                self.send_header("Content-Disposition", f"inline; filename*=UTF-8''{quote(target_file.name)}")
-                self.end_headers()
+            file_stat = target_file.stat()
+            file_size = file_stat.st_size
+            etag = f'"{file_stat.st_mtime_ns:x}-{file_size:x}"'
 
+            if self.headers.get("If-None-Match") == etag:
+                self.send_response(HTTPStatus.NOT_MODIFIED)
+                self.send_header("ETag", etag)
+                self.send_header("Cache-Control", "private, max-age=3600")
+                self.end_headers()
+                return
+
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(file_size))
+            self.send_header("Cache-Control", "private, max-age=3600")
+            self.send_header("ETag", etag)
+            self.send_header("Last-Modified", formatdate(file_stat.st_mtime, usegmt=True))
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Disposition", f"inline; filename*=UTF-8''{quote(target_file.name)}")
+            self.end_headers()
+
+            if head_only:
+                return
+
+            with target_file.open("rb") as source:
                 while True:
                     chunk = source.read(1024 * 1024)
                     if not chunk:
@@ -1064,15 +1112,19 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         requested_path = params.get("path", [""])[0]
 
         try:
-            _rom_file, rom_relative = resolve_rooted_path(GBA_ROOT, requested_path)
-            save_path, save_relative = gba_save_path_for_rom(rom_relative)
+            rom_file, rom_relative = resolve_rooted_path(GBA_ROOT, requested_path)
+            _save_path, save_relative = gba_save_path_for_rom(rom_relative)
         except ValueError as exc:
             return self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
 
-        if save_path.exists():
+        if not rom_file.is_file() or not is_gba_rom(rom_file):
+            return self.send_json({"error": "ROM target must be a .gba file."}, status=HTTPStatus.BAD_REQUEST)
+
+        existing_save_path = gba_existing_save_path_for_rom(rom_relative)
+        if existing_save_path is not None:
             try:
-                body = save_path.read_bytes()
-                modified = int(save_path.stat().st_mtime)
+                body = existing_save_path.read_bytes()
+                modified = int(existing_save_path.stat().st_mtime)
             except PermissionError:
                 return self.send_json({"error": "Permission denied while reading the save file."}, status=HTTPStatus.FORBIDDEN)
 
@@ -1105,10 +1157,13 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         requested_path = params.get("path", [""])[0]
 
         try:
-            _rom_file, rom_relative = resolve_rooted_path(GBA_ROOT, requested_path)
+            rom_file, rom_relative = resolve_rooted_path(GBA_ROOT, requested_path)
             save_path, save_relative = gba_save_path_for_rom(rom_relative)
         except ValueError as exc:
             return self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+
+        if not rom_file.is_file() or not is_gba_rom(rom_file):
+            return self.send_json({"error": "ROM target must be a .gba file."}, status=HTTPStatus.BAD_REQUEST)
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -1152,7 +1207,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
         try:
             target_file, rom_relative = resolve_rooted_path(GBA_ROOT, requested_path)
-            save_path, save_relative = gba_save_path_for_rom(rom_relative)
+            _save_path, save_relative = gba_save_path_for_rom(rom_relative)
         except ValueError as exc:
             body = f"<h1>Unable to load GBA player</h1><p>{exc}</p>".encode("utf-8")
             self.send_response(HTTPStatus.BAD_REQUEST)
@@ -1177,10 +1232,8 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         save_relative_html = escape(save_relative)
         rom_url = f"/api/gba/rom?path={quote(rom_relative)}"
         save_url = f"/api/gba/save?path={quote(rom_relative)}"
-        external_files: dict[str, str] = {}
-        if save_path.exists():
-            external_files[f"/userdata/saves/{rom_name}.sav"] = save_url
-            external_files[f"/userdata/saves/{rom_name}.srm"] = save_url
+        save_display = f"/share/ROMs/GBA/.airsite-saves/{save_relative}"
+        has_server_save = gba_existing_save_path_for_rom(rom_relative) is not None
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1282,24 +1335,48 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
   <script>
     const syncStatus = document.getElementById("syncStatus");
+    let gameStarted = false;
+    let saveSyncInFlight = false;
+    let lastSaveSyncAt = 0;
+    let lastSaveSize = -1;
+    let serverSaveData = null;
+    let serverSaveInstalled = false;
 
-    // Updates the embedded emulator status line with the latest sync message.
-    // Input: `message` is the text shown below the player. Output: none.
-    function setSyncStatus(message) {{
+    // Updates this frame and reports emulator state to the containing AirSite page.
+    // Inputs: `message` is the visible text and `type` is an optional status class.
+    function reportStatus(message, type = "") {{
       syncStatus.textContent = message;
+      window.parent.postMessage({{
+        source: "airsite-gba-player",
+        message,
+        type
+      }}, window.location.origin);
     }}
+
+    // Applies host-page volume changes without restarting the emulator session.
+    window.addEventListener("message", (event) => {{
+      if (event.origin !== window.location.origin || event.data?.source !== "airsite-gba-host") {{
+        return;
+      }}
+
+      if (event.data.type === "volume" && typeof window.EJS_emulator?.setVolume === "function") {{
+        const volume = Math.max(0, Math.min(1, Number(event.data.value)));
+        window.EJS_emulator.volume = volume;
+        window.EJS_emulator.setVolume(volume);
+      }}
+    }});
 
     EJS_player = "#game";
     EJS_core = "gba";
     EJS_gameName = {json.dumps(rom_name)};
     EJS_gameUrl = {json.dumps(rom_url)};
     EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-    EJS_startOnLoaded = true;
+    EJS_startOnLoaded = false;
+    EJS_startButtonName = {json.dumps(f"Play {rom_name}")};
     EJS_color = "#38bdf8";
     EJS_volume = {json.dumps(volume)};
     EJS_fixedSaveInterval = 7000;
     EJS_backgroundColor = "#07111f";
-    EJS_externalFiles = {json.dumps(external_files)};
     EJS_Buttons = {{
       fullscreen: true,
       volume: true,
@@ -1308,8 +1385,18 @@ class AirSiteHandler(BaseHTTPRequestHandler):
     }};
     // Uploads the latest emulator save buffer back to the server.
     // Input: `event.save` contains the raw save bytes. Output: none.
-    EJS_onSaveUpdate = async function(event) {{
+    async function syncGbaSave(event) {{
       try {{
+        if (!event?.save?.byteLength) {{
+          return;
+        }}
+
+        const now = Date.now();
+        if (saveSyncInFlight || (event.save.byteLength === lastSaveSize && now - lastSaveSyncAt < 750)) {{
+          return;
+        }}
+
+        saveSyncInFlight = true;
         const response = await fetch({json.dumps(save_url)}, {{
           method: "POST",
           headers: {{
@@ -1322,23 +1409,145 @@ class AirSiteHandler(BaseHTTPRequestHandler):
           throw new Error("Server rejected the save sync.");
         }}
 
-        setSyncStatus("Save synced to /share/ROMs/GBA/.airsite-saves/{save_relative_html}");
+        lastSaveSize = event.save.byteLength;
+        lastSaveSyncAt = Date.now();
+        reportStatus({json.dumps(f"Save synced to {save_display}")}, "success");
       }} catch (error) {{
-        setSyncStatus(error.message || "Save sync failed.");
+        reportStatus(error.message || "Save sync failed.", "error");
+      }} finally {{
+        saveSyncInFlight = false;
       }}
-    }};
+    }}
+
+    // The public callback handles the toolbar save-file action.
+    EJS_onSaveSave = syncGbaSave;
+
+    // Copies the preloaded server save into mGBA's mounted save directory.
+    // Input: none. Output: none.
+    function installServerSave() {{
+      try {{
+        const manager = window.EJS_emulator.gameManager;
+        if (serverSaveInstalled || !manager || !serverSaveData?.byteLength) {{
+          return serverSaveInstalled;
+        }}
+
+        let saveNode;
+        try {{
+          saveNode = manager.FS.lookupPath("/data/saves", {{ follow_mount: false }}).node;
+        }} catch (_error) {{
+          return false;
+        }}
+        if (!saveNode?.mounted) {{
+          return false;
+        }}
+
+        const savePaths = new Set([
+          `/data/saves/${{EJS_gameName}}.sav`,
+          `/data/saves/${{EJS_gameName}}.srm`
+        ]);
+        savePaths.forEach((path) => manager.writeFile(path, serverSaveData));
+        try {{
+          const coreSavePath = manager.getSaveFilePath();
+          if (coreSavePath && !savePaths.has(coreSavePath)) {{
+            manager.writeFile(coreSavePath, serverSaveData);
+          }}
+        }} catch (_error) {{
+          // The core-specific path may not be available until the ROM has
+          // started. The standard .sav and .srm paths above cover mGBA.
+        }}
+        serverSaveInstalled = true;
+        reportStatus({json.dumps(f"Server save loaded from {save_display}")}, "success");
+        return true;
+      }} catch (error) {{
+        window.__airsiteSaveLoadError = error?.message || String(error);
+        console.error("AirSite server save load failed", error);
+        reportStatus(error.message || "The server save could not be loaded.", "error");
+        return false;
+      }}
+    }}
+
     // Announces that the emulator has started running the game.
     // Input: none. Output: none.
     EJS_onGameStart = function() {{
-      setSyncStatus("Game running. In-game saves sync back to the server automatically.");
+      if (installServerSave()) {{
+        window.EJS_emulator.gameManager.loadSaveFiles();
+      }}
+      gameStarted = true;
+      reportStatus("Game running. In-game saves sync back to the server automatically.", "success");
     }};
-    // Announces that the emulator loader finished bootstrapping the ROM.
+    // Announces that the emulator UI is ready for a user-initiated start. The
+    // click is required inside this iframe so browser media policies do not
+    // freeze the core before it begins rendering.
     // Input: none. Output: none.
     EJS_ready = function() {{
-      setSyncStatus("Emulator ready. Launching {rom_name}...");
+      if (!window.EJS_emulator.__airsiteSaveSyncBound) {{
+        window.EJS_emulator.on("saveSaveFiles", (save) => syncGbaSave({{ save }}));
+        window.EJS_emulator.__airsiteSaveSyncBound = true;
+      }}
+      if (serverSaveData?.byteLength && !window.EJS_emulator.__airsiteSaveLoadBound) {{
+        if (window.EJS_emulator.gameManager) {{
+          installServerSave();
+        }} else {{
+          window.EJS_emulator.on("saveDatabaseLoaded", installServerSave);
+        }}
+        const installTimer = window.setInterval(() => {{
+          if (installServerSave()) {{
+            window.clearInterval(installTimer);
+          }}
+        }}, 100);
+        window.EJS_emulator.__airsiteSaveLoadBound = true;
+      }}
+      reportStatus({json.dumps(f"Emulator ready. Press Play {rom_name} to start.")});
     }};
+
+    window.addEventListener("error", (event) => {{
+      reportStatus(event.message || "The emulator failed to load.", "error");
+    }});
+
+    window.addEventListener("unhandledrejection", (event) => {{
+      const message = event.reason?.message || "The emulator could not start this ROM.";
+      reportStatus(message, "error");
+    }});
+
+    window.setInterval(() => {{
+      if (!gameStarted && document.getElementById("game")?.textContent?.includes("Failed to start game")) {{
+        reportStatus("The emulator could not start this ROM. Check browser WebGL support and reload the game.", "error");
+      }}
+    }}, 1000);
+
+    window.setTimeout(() => {{
+      if (typeof window.EJS_emulator === "undefined") {{
+        reportStatus("Emulator assets did not load. Check the browser connection and try again.", "error");
+      }}
+    }}, 15000);
+
+    // Preload server save data before exposing the Play button, then load the
+    // emulator runtime. This guarantees the save is ready when /data/saves is
+    // mounted during core startup.
+    async function bootEmulator() {{
+      if ({json.dumps(has_server_save)}) {{
+        try {{
+          reportStatus("Loading server save data...");
+          const response = await fetch({json.dumps(save_url)});
+          if (!response.ok) {{
+            throw new Error("The server save could not be downloaded.");
+          }}
+          serverSaveData = new Uint8Array(await response.arrayBuffer());
+        }} catch (error) {{
+          reportStatus(error.message || "The server save could not be loaded.", "error");
+        }}
+      }}
+
+      const loader = document.createElement("script");
+      loader.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+      loader.onerror = () => {{
+        reportStatus("Emulator assets did not load. Check the browser connection and try again.", "error");
+      }};
+      document.body.appendChild(loader);
+    }}
+
+    bootEmulator();
   </script>
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 </body>
 </html>
 """
