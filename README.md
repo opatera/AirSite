@@ -1,59 +1,34 @@
-# AirSite
+# AirRetro
 
-AirOwen's Website for Learning.
+AirRetro is a local-first music player and Game Boy Advance library. It opens a localhost web app where each person chooses the folders containing their music and `.gba` ROMs. Nothing needs to be uploaded to a service.
 
-## Run locally
-
-Start the combined static site and AirServer upload service:
+## Run from source
 
 ```bash
-python3 server.py --host 0.0.0.0 --port 8080
+python3 server.py --desktop
 ```
 
-Then open the server in a browser and use the `AirServer` tab to browse and upload into:
+AirRetro opens at `http://airretro.localhost:8080`. If that port is already in use, it automatically uses the next available port and prints the exact URL. The reserved `.localhost` domain always points back to your own computer, so it does not need DNS or hosts-file setup. On the Home page, enter the absolute paths to your music directory and GBA ROM directory. The choices are saved locally in `~/.airretro/settings.json`.
 
-`/media/airowen/Storage/share`
+## Build a Windows app
 
-## Deploy with Nginx
+Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) once, then run `build-windows.bat` on Windows. It installs PyInstaller if necessary and produces both `dist/AirRetro.exe` and `dist/AirRetro-Setup-0.1.0.exe`.
 
-This repo includes deployment files in `deploy/`:
+The setup executable installs AirRetro under `Program Files`, creates a Start Menu shortcut, offers an optional Desktop shortcut, and includes an uninstaller. User library settings remain in the user's profile when the app is uninstalled.
 
-- `deploy/airsite.service` runs the Python app with `systemd` on `127.0.0.1:8080`
-- `deploy/airsite.nginx.conf` reverse-proxies Nginx on port `80` to the app
-
-Use the repo-root deploy command to publish updates:
+## Test
 
 ```bash
-./airdeploy
+python3 -m unittest -v test_server.py
 ```
 
-That command:
+## Publish a GitHub release
 
-- fast-forwards from `origin` first when the repo is clean
-- skips `git pull` when you have local edits and deploys the current working tree as-is
-- installs or updates the `systemd` unit
-- installs or updates the Nginx site config
-- ensures the AirSite Nginx site symlink exists
-- restarts the Python app
-- validates and reloads Nginx
-
-## HTTPS
-
-Generate a self-signed certificate for private-network use:
+Pushing a semantic version tag triggers `.github/workflows/release.yml`. GitHub Actions tests the app, builds the native Linux binary and Windows installer, generates `SHA256SUMS.txt`, and attaches them to a GitHub Release.
 
 ```bash
-sudo ./deploy/generate-cert.sh AirServer 192.168.1.50
+git tag -a v0.1.0 -m "AirRetro first release"
+git push origin v0.1.0
 ```
 
-Replace `192.168.1.50` with your server's LAN IP if you access the site by IP. You can add more hostnames or IPs as extra arguments.
-
-Then deploy normally:
-
-```bash
-./airdeploy
-```
-
-Notes:
-
-- HTTP on port `80` now redirects to HTTPS on port `443`
-- browsers will warn about a self-signed cert unless you trust it on your devices
+The workflow requires GitHub Actions to have read/write workflow permissions, which is configured through its `contents: write` permission.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import errno
 import json
 import mimetypes
 import os
@@ -8,8 +9,10 @@ import platform
 import shutil
 import socket
 import subprocess
+import sys
 import threading
 import time
+import webbrowser
 from collections import deque
 from email.parser import BytesParser
 from email.policy import default
@@ -22,17 +25,109 @@ from urllib.parse import quote
 from urllib.parse import parse_qs, urlparse
 
 
-REPO_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 INDEX_FILE = REPO_ROOT / "index.html"
-SHARE_ROOT = Path("/media/airowen/Storage/share").resolve()
-MUSIC_ROOT = (SHARE_ROOT / "Music").resolve()
-GBA_ROOT = (SHARE_ROOT / "ROMs" / "GBA").resolve()
-GBA_SAVE_ROOT = (GBA_ROOT / ".airsite-saves").resolve()
-BOOT_TIME = time.time() - float(Path("/proc/uptime").read_text().split()[0])
+# First-run suggestions are intentionally generic and local to the current user.
+SHARE_ROOT = (Path.home() / "AirRetro Files").resolve()
+MUSIC_ROOT = (Path.home() / "Music").resolve()
+GBA_ROOT = (Path.home() / "Games" / "GBA").resolve()
+GBA_SAVE_ROOT = (GBA_ROOT / ".airretro-saves").resolve()
+APP_NAME = "AirRetro"
+CONFIG_FILE = Path(os.environ.get("AIRRETRO_CONFIG", Path.home() / ".airretro" / "settings.json"))
 SYSTEM_HISTORY_MAX = 60
 SYSTEM_HISTORY_INTERVAL = 60
 SYSTEM_HISTORY = deque(maxlen=SYSTEM_HISTORY_MAX)
 SYSTEM_HISTORY_LOCK = threading.Lock()
+
+
+def system_boot_time() -> float:
+    """Return the Linux boot timestamp, or startup time on other platforms."""
+    try:
+        uptime_seconds = float(Path("/proc/uptime").read_text().split()[0])
+        return time.time() - uptime_seconds
+    except (FileNotFoundError, OSError, ValueError, IndexError):
+        return time.time()
+
+
+BOOT_TIME = system_boot_time()
+
+
+def local_app_url(port: int) -> str:
+    """Return AirRetro's friendly loopback URL for a given local port."""
+    return f"http://airretro.localhost:{port}"
+
+
+def open_airretro_browser(url: str) -> None:
+    """Open AirRetro in Firefox or a Chrome-family browser when available."""
+    for browser in ("firefox", "google-chrome", "chrome", "chromium", "chromium-browser"):
+        browser_path = shutil.which(browser)
+        if browser_path:
+            try:
+                subprocess.Popen([browser_path, url], start_new_session=True)
+                return
+            except OSError:
+                continue
+
+    webbrowser.open(url, new=1)
+
+
+def create_local_server(host: str, preferred_port: int) -> tuple[ThreadingHTTPServer, int]:
+    """Bind AirRetro to the preferred port or the next available local port."""
+    for port in range(preferred_port, preferred_port + 20):
+        try:
+            return ThreadingHTTPServer((host, port), AirRetroHandler), port
+        except OSError as exc:
+            if exc.errno != errno.EADDRINUSE:
+                raise
+
+    raise OSError(f"No open port found between {preferred_port} and {preferred_port + 19}.")
+
+
+def library_settings() -> dict[str, str | bool]:
+    """Return the configured music and ROM directories with readiness details."""
+    return {
+        "musicDirectory": str(MUSIC_ROOT),
+        "gbaDirectory": str(GBA_ROOT),
+        "musicReady": MUSIC_ROOT.is_dir(),
+        "gbaReady": GBA_ROOT.is_dir(),
+        "ready": MUSIC_ROOT.is_dir() and GBA_ROOT.is_dir(),
+    }
+
+
+def load_library_settings() -> None:
+    """Load saved library locations without failing startup on a new machine."""
+    global MUSIC_ROOT, GBA_ROOT, GBA_SAVE_ROOT
+    try:
+        payload = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        music_directory = Path(payload.get("musicDirectory", MUSIC_ROOT)).expanduser().resolve()
+        gba_directory = Path(payload.get("gbaDirectory", GBA_ROOT)).expanduser().resolve()
+    except (FileNotFoundError, json.JSONDecodeError, OSError, TypeError):
+        return
+
+    MUSIC_ROOT = music_directory
+    GBA_ROOT = gba_directory
+    GBA_SAVE_ROOT = (GBA_ROOT / ".airretro-saves").resolve()
+
+
+def save_library_settings(music_directory: str, gba_directory: str) -> dict[str, str | bool]:
+    """Validate and persist user-selected local library directories."""
+    global MUSIC_ROOT, GBA_ROOT, GBA_SAVE_ROOT
+    music_root = Path(music_directory).expanduser().resolve()
+    gba_root = Path(gba_directory).expanduser().resolve()
+    if not music_root.is_dir():
+        raise ValueError("Music directory does not exist or is not a folder.")
+    if not gba_root.is_dir():
+        raise ValueError("GBA ROM directory does not exist or is not a folder.")
+
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_FILE.write_text(
+        json.dumps({"musicDirectory": str(music_root), "gbaDirectory": str(gba_root)}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    MUSIC_ROOT = music_root
+    GBA_ROOT = gba_root
+    GBA_SAVE_ROOT = (GBA_ROOT / ".airretro-saves").resolve()
+    return library_settings()
 
 
 def clean_relative_path(raw_path: str) -> str:
@@ -88,7 +183,7 @@ def resolve_rooted_path(root: Path, raw_path: str) -> tuple[Path, str]:
 
 
 def resolve_repo_path(raw_path: str) -> tuple[Path, str]:
-    """Resolve a relative path inside the AirSite repository directory.
+    """Resolve a relative path inside the AirRetro repository directory.
 
     Args:
         raw_path: Relative path requested by the client.
@@ -156,7 +251,7 @@ def gba_save_path_for_rom(rom_relative: str) -> tuple[Path, str]:
 def gba_existing_save_path_for_rom(rom_relative: str) -> Path | None:
     """Find the canonical or legacy save file for a ROM.
 
-    Saves created by AirSite live under ``.airsite-saves``. Older libraries may
+    Saves created by AirRetro live under ``.airretro-saves``. Older libraries may
     already have a same-name ``.sav`` file beside the ROM, so read that as a
     fallback without moving or overwriting user data.
     """
@@ -582,6 +677,9 @@ def history_sample(cpu_usage: float | None = None, timestamp: int | None = None)
 
 def start_system_history_sampler() -> None:
     """Start a background thread that keeps the in-memory history buffer fresh."""
+    if platform.system() != "Linux":
+        return
+
     def sampler() -> None:
         """Collect periodic history samples and append them to the shared deque."""
         previous_cpu_times = read_cpu_times()
@@ -602,11 +700,11 @@ def start_system_history_sampler() -> None:
     thread.start()
 
 
-class AirSiteHandler(BaseHTTPRequestHandler):
-    server_version = "AirSite/1.0"
+class AirRetroHandler(BaseHTTPRequestHandler):
+    server_version = "AirRetro/1.0"
 
     def do_GET(self) -> None:
-        """Route incoming GET requests to the matching AirSite page or API handler."""
+        """Route incoming GET requests to the matching AirRetro page or API handler."""
         parsed = urlparse(self.path)
 
         if parsed.path == "/":
@@ -619,6 +717,8 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             return self.handle_download(parsed.query)
         if parsed.path == "/api/media/list":
             return self.handle_media_list(parsed.query)
+        if parsed.path == "/api/settings":
+            return self.handle_settings_get()
         if parsed.path == "/api/media/art":
             return self.handle_media_art(parsed.query)
         if parsed.path == "/api/media/stream":
@@ -657,11 +757,13 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             return self.handle_create_folder(parsed.query)
         if parsed.path == "/api/gba/save":
             return self.handle_gba_save_post(parsed.query)
+        if parsed.path == "/api/settings":
+            return self.handle_settings_post()
 
         self.send_error(HTTPStatus.NOT_FOUND, "Not Found")
 
     def serve_index(self) -> None:
-        """Send the main AirSite HTML document to the client."""
+        """Send the main AirRetro HTML document to the client."""
         try:
             body = INDEX_FILE.read_bytes()
         except FileNotFoundError:
@@ -673,6 +775,23 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def handle_settings_get(self) -> None:
+        """Return the local library configuration and readiness state."""
+        return self.send_json(library_settings())
+
+    def handle_settings_post(self) -> None:
+        """Validate and save the user's local music and GBA library paths."""
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            settings = save_library_settings(
+                str(payload.get("musicDirectory", "")),
+                str(payload.get("gbaDirectory", "")),
+            )
+        except (ValueError, json.JSONDecodeError, OSError) as exc:
+            return self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        return self.send_json(settings)
 
     def serve_static_file(self, raw_path: str) -> None:
         """Serve a static file from the repository, such as images or icons.
@@ -892,7 +1011,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         except PermissionError:
             return self.send_json({"error": "Permission denied while reading the music folder."}, status=HTTPStatus.FORBIDDEN)
 
-        return self.send_json({"currentPath": relative, "entries": entries, "rootLabel": "/share/Music"})
+        return self.send_json({"currentPath": relative, "entries": entries, "rootLabel": str(MUSIC_ROOT)})
 
     def handle_media_art(self, query: str) -> None:
         """Return an album-art image from the music library.
@@ -1043,8 +1162,8 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             {
                 "currentPath": relative,
                 "entries": entries,
-                "rootLabel": "/share/ROMs/GBA",
-                "saveRootLabel": "/share/ROMs/GBA/.airsite-saves",
+                "rootLabel": str(GBA_ROOT),
+                "saveRootLabel": str(GBA_SAVE_ROOT),
             }
         )
 
@@ -1132,8 +1251,8 @@ class AirSiteHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/octet-stream")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
-            self.send_header("X-AirSite-Save-Path", save_relative)
-            self.send_header("X-AirSite-Save-Modified", str(modified))
+            self.send_header("X-AirRetro-Save-Path", save_relative)
+            self.send_header("X-AirRetro-Save-Modified", str(modified))
             self.end_headers()
             self.wfile.write(body)
             return
@@ -1232,7 +1351,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         save_relative_html = escape(save_relative)
         rom_url = f"/api/gba/rom?path={quote(rom_relative)}"
         save_url = f"/api/gba/save?path={quote(rom_relative)}"
-        save_display = f"/share/ROMs/GBA/.airsite-saves/{save_relative}"
+        save_display = str(GBA_SAVE_ROOT / save_relative)
         has_server_save = gba_existing_save_path_for_rom(rom_relative) is not None
 
         html = f"""<!DOCTYPE html>
@@ -1240,7 +1359,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{rom_name_html} - AirSite GBA</title>
+  <title>{rom_name_html} - AirRetro GBA</title>
   <style>
     html, body {{
       margin: 0;
@@ -1325,7 +1444,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         <div class="title">{rom_name_html}</div>
         <div class="meta">ROM: /share/ROMs/GBA/{rom_relative_html}</div>
       </div>
-      <div class="pill">Server save: /share/ROMs/GBA/.airsite-saves/{save_relative_html}</div>
+      <div class="pill">Server save: {escape(save_display)}</div>
     </div>
     <div class="game-shell">
       <div id="game"></div>
@@ -1342,7 +1461,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
     let serverSaveData = null;
     let serverSaveInstalled = false;
 
-    // Updates this frame and reports emulator state to the containing AirSite page.
+    // Updates this frame and reports emulator state to the containing AirRetro page.
     // Inputs: `message` is the visible text and `type` is an optional status class.
     function reportStatus(message, type = "") {{
       syncStatus.textContent = message;
@@ -1460,7 +1579,7 @@ class AirSiteHandler(BaseHTTPRequestHandler):
         return true;
       }} catch (error) {{
         window.__airsiteSaveLoadError = error?.message || String(error);
-        console.error("AirSite server save load failed", error);
+        console.error("AirRetro server save load failed", error);
         reportStatus(error.message || "The server save could not be loaded.", "error");
         return false;
       }}
@@ -1650,19 +1769,21 @@ class AirSiteHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    """Parse CLI options, validate paths, and start the threaded HTTP server."""
-    parser = argparse.ArgumentParser(description="Serve AirSite with AirServer upload support.")
-    parser.add_argument("--host", default="0.0.0.0", help="Host interface to bind to.")
+    """Parse CLI options and start the local AirRetro web application."""
+    parser = argparse.ArgumentParser(description="Run AirRetro, your local music and GBA library.")
+    parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind to.")
     parser.add_argument("--port", type=int, default=8080, help="Port to listen on.")
+    parser.add_argument("--desktop", action="store_true", help="Open AirRetro in Firefox or Chrome on launch.")
     args = parser.parse_args()
 
-    if not SHARE_ROOT.exists():
-        raise SystemExit(f"Share root does not exist: {SHARE_ROOT}")
-
+    load_library_settings()
     start_system_history_sampler()
-    server = ThreadingHTTPServer((args.host, args.port), AirSiteHandler)
-    print(f"Serving AirSite on http://{args.host}:{args.port}")
-    print(f"Shared root: {SHARE_ROOT}")
+    server, port = create_local_server(args.host, args.port)
+    address = f"http://{args.host}:{port}"
+    launch_url = local_app_url(port)
+    print(f"Serving AirRetro on {address} ({launch_url})")
+    if args.desktop or getattr(sys, "frozen", False):
+        threading.Timer(0.25, open_airretro_browser, args=(launch_url,)).start()
 
     try:
         server.serve_forever()
