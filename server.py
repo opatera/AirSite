@@ -27,9 +27,10 @@ from urllib.parse import parse_qs, urlparse
 
 REPO_ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 INDEX_FILE = REPO_ROOT / "index.html"
-SHARE_ROOT = Path("/media/airowen/Storage/share").resolve()
-MUSIC_ROOT = (SHARE_ROOT / "Music").resolve()
-GBA_ROOT = (SHARE_ROOT / "ROMs" / "GBA").resolve()
+# First-run suggestions are intentionally generic and local to the current user.
+SHARE_ROOT = (Path.home() / "AirRetro Files").resolve()
+MUSIC_ROOT = (Path.home() / "Music").resolve()
+GBA_ROOT = (Path.home() / "Games" / "GBA").resolve()
 GBA_SAVE_ROOT = (GBA_ROOT / ".airretro-saves").resolve()
 APP_NAME = "AirRetro"
 CONFIG_FILE = Path(os.environ.get("AIRRETRO_CONFIG", Path.home() / ".airretro" / "settings.json"))
