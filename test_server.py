@@ -1,3 +1,4 @@
+import errno
 import json
 import tempfile
 import unittest
@@ -65,7 +66,7 @@ class LibrarySettingsTests(unittest.TestCase):
 
     @patch("server.ThreadingHTTPServer")
     def test_server_uses_next_port_when_preferred_port_is_busy(self, mock_http_server):
-        mock_http_server.side_effect = [OSError(98, "Address already in use"), "server"]
+        mock_http_server.side_effect = [OSError(errno.EADDRINUSE, "Address already in use"), "server"]
 
         web_server, port = server.create_local_server("127.0.0.1", 8080)
 
