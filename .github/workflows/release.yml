@@ -21,7 +21,7 @@ jobs:
             asset: AirRetro-linux-x86_64
           - name: Windows
             os: windows-latest
-            asset: AirRetro-windows-x86_64.exe
+            asset: AirRetro-windows-x86_64-setup.exe
 
     steps:
       - name: Check out release tag
@@ -56,7 +56,19 @@ jobs:
             --add-data "index.html;." `
             --add-data "assets;assets" `
             server.py
-          Move-Item dist/AirRetro.exe dist/${{ matrix.asset }}
+
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" installer\airretro.iss
+          Move-Item "dist\AirRetro-Setup-$version.exe" "dist\${{ matrix.asset }}"
 
       - name: Upload release binary
         uses: actions/upload-artifact@v4

@@ -12,7 +12,9 @@ AirRetro opens at `http://airretro.localhost:8080`. If that port is already in u
 
 ## Build a Windows app
 
-On Windows, run `build-windows.bat`. It installs PyInstaller if necessary and produces `dist/AirRetro.exe`. Double-clicking the executable launches the local server and opens the app in the default browser.
+Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) once, then run `build-windows.bat` on Windows. It installs PyInstaller if necessary and produces both `dist/AirRetro.exe` and `dist/AirRetro-Setup-0.1.0.exe`.
+
+The setup executable installs AirRetro under `Program Files`, creates a Start Menu shortcut, offers an optional Desktop shortcut, and includes an uninstaller. User library settings remain in the user's profile when the app is uninstalled.
 
 ## Test
 
@@ -22,7 +24,7 @@ python3 -m unittest -v test_server.py
 
 ## Publish a GitHub release
 
-Pushing a semantic version tag triggers `.github/workflows/release.yml`. GitHub Actions tests the app, builds native Linux and Windows binaries, generates `SHA256SUMS.txt`, and attaches all three files to a GitHub Release.
+Pushing a semantic version tag triggers `.github/workflows/release.yml`. GitHub Actions tests the app, builds the native Linux binary and Windows installer, generates `SHA256SUMS.txt`, and attaches them to a GitHub Release.
 
 ```bash
 git tag -a v0.1.0 -m "AirRetro first release"
