@@ -95,6 +95,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+
       - name: Download Linux binary
         uses: actions/download-artifact@v5
         with:
