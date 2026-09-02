@@ -9,20 +9,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Linux
-            os: ubuntu-latest
-            asset: AirRetro-linux-x86_64
-          - name: Windows
-            os: windows-latest
-            asset: AirRetro-windows-x86_64-setup.exe
-
+  build-linux:
+    name: Build Linux application
+    runs-on: ubuntu-latest
     steps:
       - name: Check out release tag
         uses: actions/checkout@v6
@@ -39,17 +28,41 @@ jobs:
         run: python -m unittest -v test_server.py
 
       - name: Build Linux application
-        if: runner.os == 'Linux'
         shell: bash
         run: |
           pyinstaller --noconfirm --clean --onefile --name AirRetro \
             --add-data "index.html:." \
             --add-data "assets:assets" \
             server.py
-          mv dist/AirRetro dist/${{ matrix.asset }}
+          mv dist/AirRetro dist/AirRetro-linux-x86_64
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: AirRetro-linux-x86_64
+          path: dist/AirRetro-linux-x86_64
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        run: python -m pip install pyinstaller
+
+      - name: Run application tests
+        run: python -m unittest -v test_server.py
 
       - name: Build Windows application
-        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           pyinstaller --noconfirm --clean --onefile --name AirRetro `
@@ -58,40 +71,46 @@ jobs:
             server.py
 
       - name: Install Inno Setup
-        if: runner.os == 'Windows'
         shell: pwsh
         run: choco install innosetup --yes --no-progress
 
       - name: Build Windows installer
-        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" installer\airretro.iss
-          Move-Item "dist\AirRetro-Setup-$version.exe" "dist\${{ matrix.asset }}"
+          Move-Item "dist\AirRetro-Setup-$version.exe" "dist\AirRetro-windows-x86_64-setup.exe"
 
-      - name: Upload release binary
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset }}
-          path: dist/${{ matrix.asset }}
+          name: AirRetro-windows-x86_64-setup.exe
+          path: dist/AirRetro-windows-x86_64-setup.exe
           if-no-files-found: error
 
   release:
     name: Publish GitHub release
-    needs: build
+    needs: [build-linux, build-windows]
+    if: ${{ always() && needs.build-linux.result == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download release binaries
+      - name: Download Linux binary
         uses: actions/download-artifact@v5
         with:
+          name: AirRetro-linux-x86_64
+          path: release
+
+      - name: Download Windows installer
+        if: ${{ needs.build-windows.result == 'success' }}
+        uses: actions/download-artifact@v5
+        with:
+          name: AirRetro-windows-x86_64-setup.exe
           path: release
 
       - name: Create checksums
         shell: bash
         run: |
-          find release -mindepth 2 -maxdepth 2 -type f -exec cp {} release/ \;
           sha256sum release/AirRetro-* > release/SHA256SUMS.txt
 
       - name: Create release and upload assets
